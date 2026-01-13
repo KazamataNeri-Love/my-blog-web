@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>写文章</title>
+    <style>
+        body { max-width: 800px; margin: 20px auto; padding: 20px; font-family: sans-serif; }
+        input, textarea { width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 10px; }
+        textarea { height: 400px; font-family: monospace; }
+        button { padding: 10px 20px; background: #2da44e; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <a href="index.html">← 放弃并返回</a>
+    <h2>新建 / 编辑文章</h2>
+    
+    <label>文件名 (必须以 .md 结尾)</label>
+    <input type="text" id="filename" placeholder="例如: my-new-post.md">
+    
+    <label>内容</label>
+    <textarea id="content" placeholder="# 标题..."></textarea>
+    
+    <button id="save">保存到 GitHub</button>
+
+    <script type="module">
+        import { savePost } from "./js/api.js";
+
+        document.getElementById("save").onclick = async () => {
+            const name = document.getElementById("filename").value;
+            const text = document.getElementById("content").value;
+            
+            if (!name || !text) return alert("请填写完整！");
+            if (!name.endsWith(".md")) return alert("文件名必须以 .md 结尾");
+
+            // 弹窗询问 Token
+            const token = prompt("🔐 请输入你的 GitHub Token 以验证身份：");
+            if (!token) return;
+
+            try {
+                document.getElementById("save").innerText = "正在保存...";
+                await savePost(name, text, token);
+                alert("✅ 发布成功！");
+                window.location.href = "index.html";
+            } catch (e) {
+                alert(e.message);
+                document.getElementById("save").innerText = "保存到 GitHub";
+            }
+        };
+    </script>
+</body>
+</html>
