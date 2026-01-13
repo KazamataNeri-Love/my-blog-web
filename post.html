@@ -3,31 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>阅读文章</title>
+    <!-- 引入 Markdown 解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { max-width: 800px; margin: 20px auto; padding: 20px; font-family: "Segoe UI", sans-serif; line-height: 1.8; color: #24292f; }
         
         /* 顶部导航 */
-        .nav { margin-bottom: 30px; }
+        .nav { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .back-link { text-decoration: none; color: #0969da; font-weight: bold; }
         .back-link:hover { text-decoration: underline; }
         
-        /* 标题 */
-        #title { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-size: 2em; }
-
-        /* 正文 */
-        #content { white-space: pre-wrap; font-size: 16px; }
+        /* --- Markdown 渲染后的样式优化 --- */
+        /* 图片自适应 */
+        img { max-width: 100%; height: auto; border-radius: 6px; }
         
-        /* Markdown 元素简单样式 */
-        blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding-left: 15px; margin: 0; }
-        code { background: #f6f8fa; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
-        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-        th, td { border: 1px solid #d0d7de; padding: 6px 13px; }
-        th { background: #f6f8fa; }
+        /* 引用块 */
+        blockquote { border-left: 4px solid #d0d7de; color: #57606a; padding-left: 15px; margin: 15px 0; background: #fff; }
+        
+        /* 代码块 */
+        code { background: #f6f8fa; padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        pre { background: #f6f8fa; padding: 15px; border-radius: 6px; overflow-x: auto; }
+        pre code { background: none; padding: 0; }
+        
+        /* 表格样式 (关键修复) */
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; display: block; overflow-x: auto; }
+        th, td { border: 1px solid #d0d7de; padding: 8px 13px; text-align: left; }
+        th { background: #f6f8fa; font-weight: bold; }
+        tr:nth-child(2n) { background-color: #fcfcfc; }
+
+        /* 标题 */
+        h1 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 30px; }
+        h2 { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; }
 
         /* --- 文件卡片样式 --- */
         .file-card {
-            background: #f6f8fa;
-            border: 1px solid #d0d7de;
+            background: #f1f8ff; /* 稍微换个颜色区分 */
+            border: 1px solid #c8e1ff;
             border-radius: 6px;
             padding: 12px 16px;
             margin: 15px 0;
@@ -35,17 +46,16 @@
             justify-content: space-between;
             align-items: center;
         }
-        .file-name { font-weight: 600; color: #24292f; }
-        .file-download { color: #0969da; text-decoration: underline; cursor: pointer; font-size: 14px; }
-        .file-download:hover { color: #0a3069; }
+        .file-name { font-weight: 600; color: #0969da; display: flex; align-items: center; gap: 5px; }
+        .file-download { color: #0969da; text-decoration: underline; cursor: pointer; font-size: 14px; white-space: nowrap; margin-left: 10px;}
+        .file-download:hover { color: #0a3069; background: #d0e7ff; padding: 2px 5px; border-radius: 4px; text-decoration: none;}
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html" class="back-link">← 返回列表</a>
+        <a href="index.html" class="back-link">← 返回文章列表</a>
     </div>
 
-    <!-- 标题不再单独显示，因为已经包含在 Markdown 内容里了，或者你可以选择在这里显示 -->
     <div id="content">正在加载文章...</div>
 
     <script type="module">
@@ -65,12 +75,11 @@
                 const text = await getPost(filename);
                 const div = document.getElementById("content");
                 
-                // 将 Markdown 文本注入
-                // 注意：这里没有引入 marked.js 解析器，所以显示的是原始 Markdown 源码 + HTML 标签
-                // 但文件卡片(HTML)会被浏览器正确渲染
-                div.innerHTML = text;
+                // 核心修复：使用 marked.parse() 将 Markdown 转换为 HTML
+                // marked 库会自动识别 **加粗**, # 标题, | 表格 | 等符号
+                div.innerHTML = marked.parse(text);
 
-                // 绑定下载事件
+                // 绑定下载事件 (文件卡片是 HTML，Markdown 解析器会保留它)
                 div.querySelectorAll('.file-download').forEach(btn => {
                     btn.onclick = () => {
                         const path = btn.getAttribute('data-path');
@@ -78,11 +87,12 @@
                     };
                 });
                 
-                // 设置网页标题
+                // 设置网页标题 (提取第一行作为标题)
                 const firstLine = text.split('\n')[0];
-                document.title = firstLine.replace('# ', '') || "阅读文章";
+                document.title = firstLine.replace(/^#+\s*/, '') || "阅读文章";
 
             } catch (e) {
+                console.error(e);
                 document.getElementById("content").innerText = "文章加载失败或文件不存在";
             }
         }
