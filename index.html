@@ -34,47 +34,50 @@
     </ul>
 
     <script type="module">
-        import { listPosts, getPost } from "./js/api.js";
+        import { listPosts } from "./js/api.js";
         
         const list = document.getElementById("list");
         
         async function init() {
-            const posts = await listPosts();
-            
-            // 过滤非md文件
-            const mdFiles = posts.filter(p => p.name.endsWith(".md"));
+            try {
+                const posts = await listPosts();
+                // 过滤 md 文件
+                const mdFiles = posts.filter(p => p.name.endsWith(".md"));
 
-            if (mdFiles.length === 0) {
-                list.innerHTML = "<li style='text-align:center'>还没有文章，快去写一篇吧！</li>";
-                return;
-            }
+                if (mdFiles.length === 0) {
+                    list.innerHTML = "<li style='text-align:center'>还没有文章，快去写一篇吧！</li>";
+                    return;
+                }
 
-            // 按文件名倒序（因为文件名包含日期，倒序就是最新的在前）
-            mdFiles.sort((a, b) => b.name.localeCompare(a.name));
-            
-            list.innerHTML = "";
-
-            // 遍历每个文件
-            for (const file of mdFiles) {
-                const li = document.createElement("li");
+                // 按文件名倒序 (因为格式是 YYYY-MM-DD，倒序就是最新的在前)
+                mdFiles.sort((a, b) => b.name.localeCompare(a.name));
                 
-                // 默认先显示文件名，稍后异步加载标题
-                li.innerHTML = `
-                    <div class="post-info">
-                        <a href="post.html?f=${file.name}" class="post-title" id="title-${file.sha}">📄 加载标题中...</a>
-                        <span class="post-meta">${file.name}</span>
-                    </div>
-                    <a href="editor.html?edit=${file.name}" class="action-btn">✏️ 编辑</a>
-                `;
-                list.appendChild(li);
+                list.innerHTML = "";
 
-                // 异步获取内容提取标题 (不阻塞页面显示)
-                getPost(file.name).then(text => {
-                    const firstLine = text.split('\n')[0];
-                    // 去掉 # 号
-                    const title = firstLine.replace(/^#+\s*/, '').trim() || "无标题";
-                    document.getElementById(`title-${file.sha}`).innerText = title;
-                });
+                for (const file of mdFiles) {
+                    const li = document.createElement("li");
+                    
+                    // 1. 解码中文文件名
+                    let rawName = decodeURIComponent(file.name);
+                    // 2. 去掉 .md
+                    let displayName = rawName.replace(".md", "");
+                    // 3. 尝试去掉日期前缀 (例如 2026-01-14-)
+                    // 正则：匹配开头的 4位数字-2位数字-2位数字-
+                    const cleanTitle = displayName.replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+
+                    li.innerHTML = `
+                        <div class="post-info">
+                            <!-- 链接参数保持原始文件名 -->
+                            <a href="post.html?f=${file.name}" class="post-title">📄 ${cleanTitle}</a>
+                            <span class="post-meta">${file.name}</span>
+                        </div>
+                        <a href="editor.html?edit=${file.name}" class="action-btn">✏️ 编辑</a>
+                    `;
+                    list.appendChild(li);
+                }
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = `<li style="color:red">⚠️ 加载失败，请稍后再试。</li>`;
             }
         }
         init();
