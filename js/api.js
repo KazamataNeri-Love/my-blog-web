@@ -6,14 +6,15 @@ const BRANCH = "main";
 const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 
-// 1. 获取文章列表
+// 1. 获取文章列表 (只读 posts 目录)
 export async function listPosts() {
-    const res = await fetch(`${API_BASE}/contents/posts`);
+    // 加上时间戳防止缓存
+    const res = await fetch(`${API_BASE}/contents/posts?t=${new Date().getTime()}`);
     if (!res.ok) return [];
     return await res.json();
 }
 
-// 2. 获取任意目录列表
+// 2. 获取任意目录列表 (用于文件选择器)
 export async function listDir(path = "") {
     const res = await fetch(`${API_BASE}/contents/${path}`);
     if (!res.ok) return [];
@@ -22,8 +23,11 @@ export async function listDir(path = "") {
 
 // 3. 获取文件内容
 export async function getPost(filename) {
-    const url = `${RAW_BASE}/posts/${filename}?t=${new Date().getTime()}`;
+    // 处理中文文件名，确保 URL 编码正确
+    const safeFilename = encodeURIComponent(filename);
+    const url = `${RAW_BASE}/posts/${safeFilename}?t=${new Date().getTime()}`;
     const res = await fetch(url);
+    if (!res.ok) throw new Error("文件不存在或无法访问");
     return await res.text();
 }
 
@@ -33,6 +37,7 @@ export async function downloadFile(pathOrUrl) {
         window.open(pathOrUrl, "_blank");
         return;
     }
+    // 仓库内文件下载
     const url = `${RAW_BASE}/${pathOrUrl}`;
     try {
         const res = await fetch(url);
@@ -40,7 +45,8 @@ export async function downloadFile(pathOrUrl) {
         const blob = await res.blob();
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = pathOrUrl.split('/').pop();
+        // 解码文件名，防止下载下来是乱码
+        link.download = decodeURIComponent(pathOrUrl.split('/').pop());
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -51,10 +57,14 @@ export async function downloadFile(pathOrUrl) {
 
 // 5. 保存/更新文章
 export async function savePost(filename, content, token) {
+    // Base64 编码 (处理中文内容)
     const contentEncoded = btoa(unescape(encodeURIComponent(content)));
+    const safeFilename = encodeURIComponent(filename);
+    
+    // 检查文件是否存在以获取 sha (用于更新)
     let sha = null;
     try {
-        const check = await fetch(`${API_BASE}/contents/posts/${filename}`, {
+        const check = await fetch(`${API_BASE}/contents/posts/${safeFilename}`, {
             headers: { "Authorization": `token ${token}` }
         });
         if (check.ok) {
@@ -70,7 +80,7 @@ export async function savePost(filename, content, token) {
     };
     if (sha) body.sha = sha;
 
-    const res = await fetch(`${API_BASE}/contents/posts/${filename}`, {
+    const res = await fetch(`${API_BASE}/contents/posts/${safeFilename}`, {
         method: "PUT",
         headers: {
             "Authorization": `token ${token}`,
@@ -82,37 +92,17 @@ export async function savePost(filename, content, token) {
     if (!res.ok) throw new Error(await res.text());
 }
 
-// 6. 自动生成文件名
-export async function generateAutoFilename() {
-    const now = new Date();
-    const datePrefix = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-    const files = await listPosts();
-    let maxIndex = 0;
-
-    files.forEach(file => {
-        if (file.name.startsWith(datePrefix + "-0x") && file.name.endsWith(".md")) {
-            const part = file.name.replace(datePrefix + "-0x", "").replace(".md", "");
-            const num = parseInt(part, 16);
-            if (!isNaN(num) && num > maxIndex) maxIndex = num;
-        }
-    });
-
-    const nextIndex = maxIndex + 1;
-    const hexString = nextIndex.toString(16).padStart(4, '0');
-    return `${datePrefix}-0x${hexString}.md`;
-}
-
-// 7. 上传图片 (支持指定子文件夹)
-// folderName 例如: "2026-1-14-0x0001" (不带 .md)
+// 6. 上传图片 (存放至 images/日期-标题/xxx.png)
 export async function uploadImage(file, folderName, token) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
             const contentBase64 = reader.result.split(',')[1];
-            // 构造路径: images/2026-1-14-0x0001/time-pic.png
+            // 构造路径：images/2026-01-14-我的日记/时间戳-图片名.png
+            const safeFolderName = encodeURIComponent(folderName); // 文件夹名可能含中文
             const filename = `${new Date().getTime()}-${file.name}`;
-            const path = `images/${folderName}/${filename}`;
+            const path = `images/${safeFolderName}/${filename}`;
             
             const body = {
                 message: `Upload image to ${folderName}`,
@@ -121,6 +111,9 @@ export async function uploadImage(file, folderName, token) {
             };
 
             try {
+                // path 这里不需要再次 encode，因为路径中的斜杠不能被转义
+                // 但是 folderName 作为路径一部分，如果是中文，GitHub API 通常能处理
+                // 为了保险，我们在 URL 中拼接时最好小心，但 API_BASE/contents/ 会自动处理
                 const res = await fetch(`${API_BASE}/contents/${path}`, {
                     method: "PUT",
                     headers: {
@@ -131,8 +124,10 @@ export async function uploadImage(file, folderName, token) {
                 });
 
                 if (!res.ok) throw new Error(await res.text());
-                // 返回图片的 Raw URL
-                resolve(`${RAW_BASE}/${path}`);
+                // 返回图片的 Raw CDN URL
+                // 注意：这里要返回 encode 过的 URL 供 Markdown 使用
+                const rawUrl = `${RAW_BASE}/images/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`;
+                resolve(rawUrl);
             } catch (e) {
                 reject(e);
             }
