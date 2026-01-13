@@ -6,29 +6,28 @@ const BRANCH = "main";
 const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 
-// 1. 获取文章列表 (只读 posts 目录)
+// 1. 获取文章列表
 export async function listPosts() {
     const res = await fetch(`${API_BASE}/contents/posts`);
     if (!res.ok) return [];
     return await res.json();
 }
 
-// 2. 获取任意目录列表 (用于文件选择器)
+// 2. 获取任意目录列表
 export async function listDir(path = "") {
     const res = await fetch(`${API_BASE}/contents/${path}`);
     if (!res.ok) return [];
     return await res.json();
 }
 
-// 3. 获取文件内容 (文本)
+// 3. 获取文件内容
 export async function getPost(filename) {
-    // 加上时间戳防止缓存
     const url = `${RAW_BASE}/posts/${filename}?t=${new Date().getTime()}`;
     const res = await fetch(url);
     return await res.text();
 }
 
-// 4. 通用下载/打开链接函数
+// 4. 通用下载/打开链接
 export async function downloadFile(pathOrUrl) {
     if (pathOrUrl.startsWith("http")) {
         window.open(pathOrUrl, "_blank");
@@ -53,8 +52,6 @@ export async function downloadFile(pathOrUrl) {
 // 5. 保存/更新文章
 export async function savePost(filename, content, token) {
     const contentEncoded = btoa(unescape(encodeURIComponent(content)));
-    
-    // 检查文件是否存在以获取 sha
     let sha = null;
     try {
         const check = await fetch(`${API_BASE}/contents/posts/${filename}`, {
@@ -85,29 +82,61 @@ export async function savePost(filename, content, token) {
     if (!res.ok) throw new Error(await res.text());
 }
 
-// 6. 自动生成文件名 (YYYY-M-D-0xXXXX.md)
+// 6. 自动生成文件名
 export async function generateAutoFilename() {
     const now = new Date();
-    // 格式: 2026-1-14
     const datePrefix = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-    
     const files = await listPosts();
     let maxIndex = 0;
 
     files.forEach(file => {
-        // 匹配开头如 "2026-1-14-0x" 且结尾是 ".md"
         if (file.name.startsWith(datePrefix + "-0x") && file.name.endsWith(".md")) {
             const part = file.name.replace(datePrefix + "-0x", "").replace(".md", "");
-            const num = parseInt(part, 16); // 16进制转10进制
-            if (!isNaN(num) && num > maxIndex) {
-                maxIndex = num;
-            }
+            const num = parseInt(part, 16);
+            if (!isNaN(num) && num > maxIndex) maxIndex = num;
         }
     });
 
-    // 序号+1，转回16进制，补齐4位
     const nextIndex = maxIndex + 1;
     const hexString = nextIndex.toString(16).padStart(4, '0');
-
     return `${datePrefix}-0x${hexString}.md`;
+}
+
+// 7. 上传图片 (支持指定子文件夹)
+// folderName 例如: "2026-1-14-0x0001" (不带 .md)
+export async function uploadImage(file, folderName, token) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            const contentBase64 = reader.result.split(',')[1];
+            // 构造路径: images/2026-1-14-0x0001/time-pic.png
+            const filename = `${new Date().getTime()}-${file.name}`;
+            const path = `images/${folderName}/${filename}`;
+            
+            const body = {
+                message: `Upload image to ${folderName}`,
+                content: contentBase64,
+                branch: BRANCH
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/contents/${path}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) throw new Error(await res.text());
+                // 返回图片的 Raw URL
+                resolve(`${RAW_BASE}/${path}`);
+            } catch (e) {
+                reject(e);
+            }
+        };
+        reader.onerror = error => reject(error);
+    });
 }
