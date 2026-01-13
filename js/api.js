@@ -37,6 +37,15 @@ export async function downloadFile(path) {
     }
 }
 
+// 【新增】获取指定目录下的文件列表
+// path 默认为空，表示根目录
+export async function listDir(path = "") {
+    const url = `${API_BASE}/contents/${path}`;
+    const res = await fetch(url);
+    if (!res.ok) return []; // 如果文件夹不存在或出错，返回空数组
+    return await res.json();
+}
+
 // 保存文章 (需要 Token)
 export async function savePost(filename, content, token) {
     // 1. 检查文件是否存在以获取 sha (用于更新)
