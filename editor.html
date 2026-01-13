@@ -5,31 +5,21 @@
     <title>编辑器</title>
     <style>
         body { max-width: 900px; margin: 20px auto; padding: 20px; font-family: sans-serif; background: #fff; }
-        
-        /* 标题区 */
         .header-area { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
         input[type="text"] { width: 100%; padding: 12px; font-size: 18px; border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; }
         input:focus { outline: 2px solid #0969da; border-color: transparent; }
-
-        /* 工具栏 */
-        .toolbar { background: #f6f8fa; padding: 8px; border: 1px solid #d0d7de; border-bottom: none; border-radius: 6px 6px 0 0; display: flex; gap: 6px; flex-wrap: wrap; }
+        .toolbar { background: #f6f8fa; padding: 8px; border: 1px solid #d0d7de; border-bottom: none; border-radius: 6px 6px 0 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;}
         .tool-btn { background: white; border: 1px solid #d0d7de; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; color: #24292f; }
         .tool-btn:hover { background: #f3f4f6; border-color: #8b949e; }
-        .tool-sep { width: 1px; background: #d0d7de; margin: 0 5px; }
-
-        /* 编辑框 */
+        .tool-sep { width: 1px; height: 20px; background: #d0d7de; margin: 0 5px; }
         textarea { width: 100%; height: 500px; padding: 15px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 15px; line-height: 1.6; border: 1px solid #d0d7de; border-radius: 0 0 6px 6px; box-sizing: border-box; resize: vertical; outline: none; }
         textarea:focus { border-color: #0969da; }
-
-        /* 底部操作区 */
         .footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
         .status { color: #666; font-size: 14px; }
         .btn-save { background: #2da44e; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-save:hover { background: #2c974b; }
         .back-link { text-decoration: none; color: #0969da; }
-
-        /* --- 弹窗样式 --- */
         #modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 999; }
         #modal { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 450px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
         #file-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #eee; margin-top: 10px; border-radius: 4px; }
@@ -43,36 +33,36 @@
         <a href="index.html" class="back-link">← 返回列表</a>
     </div>
 
-    <!-- 标题输入 -->
     <div class="header-area">
         <label>贴文标题</label>
         <input type="text" id="post-title" placeholder="请输入标题...">
     </div>
 
-    <!-- 工具栏 -->
     <div class="toolbar">
         <button class="tool-btn" onclick="insertMD('**', '**')">B 加粗</button>
         <button class="tool-btn" onclick="insertMD('*', '*')">I 斜体</button>
         <div class="tool-sep"></div>
         <button class="tool-btn" onclick="insertMD('# ', '')">H1</button>
         <button class="tool-btn" onclick="insertMD('## ', '')">H2</button>
-        <button class="tool-btn" onclick="insertMD('### ', '')">H3</button>
         <div class="tool-sep"></div>
         <button class="tool-btn" onclick="insertTable()">📅 表格</button>
         <button class="tool-btn" onclick="insertMD('> ', '')">❝ 引用</button>
         <button class="tool-btn" onclick="insertMD('\n---\n', '')">📏 分割线</button>
+        <div class="tool-sep"></div>
         
+        <button class="tool-btn" onclick="document.getElementById('img-upload').click()">🖼️ 插入图片</button>
+        <input type="file" id="img-upload" accept="image/*" style="display:none">
+
         <button class="tool-btn" id="openFileBtn" style="margin-left:auto; background:#f0f6fc; color:#0969da">📎 插入文件</button>
     </div>
 
     <textarea id="content" placeholder="在此开始撰写正文..."></textarea>
     
     <div class="footer">
-        <span class="status" id="status-text">准备就绪</span>
+        <span class="status" id="status-text">初始化中...</span>
         <button id="saveBtn" class="btn-save">保存贴文</button>
     </div>
 
-    <!-- 文件选择弹窗 -->
     <div id="modal-overlay">
         <div id="modal">
             <h3 style="margin-top:0">选择要插入的文件</h3>
@@ -85,29 +75,30 @@
     </div>
 
     <script type="module">
-        import { savePost, getPost, generateAutoFilename, listDir } from "./js/api.js";
+        import { savePost, getPost, generateAutoFilename, listDir, uploadImage } from "./js/api.js";
 
         const titleInput = document.getElementById("post-title");
         const contentArea = document.getElementById("content");
         const statusText = document.getElementById("status-text");
         const saveBtn = document.getElementById("saveBtn");
 
-        // 获取URL参数
         const params = new URLSearchParams(location.search);
         const editFilename = params.get("edit");
         
-        // --- 初始化 ---
+        // 关键变量：用于存储当前操作的“目标文件名”
+        let currentTargetFilename = "";
+
+        // --- 初始化逻辑 (核心修改) ---
         async function init() {
             if (editFilename) {
-                // 编辑模式
-                statusText.innerText = `正在编辑: ${editFilename}`;
+                // === 编辑模式 ===
+                currentTargetFilename = editFilename;
+                statusText.innerText = `编辑模式: ${currentTargetFilename}`;
                 saveBtn.innerText = "更新贴文";
                 
                 try {
                     const fullText = await getPost(editFilename);
                     const lines = fullText.split('\n');
-                    
-                    // 分离标题和正文
                     if (lines[0].startsWith('# ')) {
                         titleInput.value = lines[0].replace('# ', '').trim();
                         contentArea.value = lines.slice(1).join('\n').trim();
@@ -115,15 +106,51 @@
                         titleInput.value = "无标题";
                         contentArea.value = fullText;
                     }
-                } catch(e) {
-                    alert("加载失败，请检查网络");
-                }
+                } catch(e) { alert("加载文章失败"); }
+                
             } else {
-                // 新建模式
-                statusText.innerText = "新建模式 (自动命名)";
+                // === 新建模式 ===
+                // 立即预计算文件名，例如 2026-1-14-0x0001.md
+                // 这样后续上传图片时，就知道该往哪个文件夹传了
+                statusText.innerText = "正在预分配文件名...";
+                currentTargetFilename = await generateAutoFilename();
+                statusText.innerText = `新建模式 (目标: ${currentTargetFilename})`;
             }
         }
         init();
+
+        // --- 图片上传逻辑 ---
+        const imgInput = document.getElementById("img-upload");
+        imgInput.addEventListener("change", async () => {
+            const file = imgInput.files[0];
+            if (!file) return;
+            if (!currentTargetFilename) return alert("初始化未完成，请稍后再试");
+
+            const token = prompt("🖼️ 上传图片验证：请输入 Token:");
+            if (!token) { imgInput.value = ""; return; }
+
+            statusText.innerText = "正在上传图片...";
+            
+            try {
+                // 1. 提取文件夹名：去掉 .md 后缀
+                // 例如 2026-1-14-0x0001.md -> 2026-1-14-0x0001
+                const folderName = currentTargetFilename.replace(".md", "");
+
+                // 2. 调用 API 上传到指定文件夹
+                const imageUrl = await uploadImage(file, folderName, token);
+                
+                const mdImage = `\n![${file.name}](${imageUrl})\n`;
+                window.insertMD(mdImage, "");
+                
+                alert("✅ 图片上传成功！\n存放位置: images/" + folderName);
+                statusText.innerText = "图片已插入";
+            } catch (e) {
+                alert("❌ 上传失败: " + e.message);
+                statusText.innerText = "上传出错";
+            } finally {
+                imgInput.value = "";
+            }
+        });
 
         // --- 保存逻辑 ---
         saveBtn.onclick = async () => {
@@ -131,27 +158,19 @@
             const body = contentArea.value;
 
             if (!title) return alert("标题不能为空！");
-            if (!body) return alert("正文不能为空！");
+            if (!currentTargetFilename) return alert("系统错误：目标文件名未生成");
 
-            // 组合内容
             const finalContent = `# ${title}\n\n${body}`;
-
-            const token = prompt("🔐 请输入 GitHub Token 以保存:");
+            const token = prompt("🔐 请输入 Token 以保存贴文:");
             if (!token) return;
 
             statusText.innerText = "正在保存...";
             saveBtn.disabled = true;
 
             try {
-                let targetFile = editFilename;
-                // 如果是新建，生成文件名
-                if (!targetFile) {
-                    targetFile = await generateAutoFilename();
-                }
-
-                await savePost(targetFile, finalContent, token);
-                
-                alert(`✅ 保存成功！\n文件: ${targetFile}`);
+                // 直接使用我们初始化时确定的 currentTargetFilename
+                await savePost(currentTargetFilename, finalContent, token);
+                alert(`✅ 保存成功！\n文件: ${currentTargetFilename}`);
                 window.location.href = "index.html";
             } catch (e) {
                 alert("❌ 保存失败: " + e.message);
@@ -160,7 +179,7 @@
             }
         };
 
-        // --- 工具栏辅助函数 ---
+        // --- 工具栏辅助函数 (保持不变) ---
         window.insertMD = (prefix, suffix) => {
             const start = contentArea.selectionStart;
             const end = contentArea.selectionEnd;
@@ -171,34 +190,25 @@
             contentArea.selectionStart = start + prefix.length;
             contentArea.selectionEnd = start + prefix.length + selection.length;
         };
-
         window.insertTable = () => {
             const table = `\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n`;
             window.insertMD(table, "");
         };
 
-        // --- 文件选择器逻辑 ---
+        // --- 文件选择器逻辑 (保持不变) ---
         let currentPath = "";
-        
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("modal-overlay").style.display = "block";
             loadFiles("");
         };
-        
-        window.closeModal = () => {
-            document.getElementById("modal-overlay").style.display = "none";
-        };
-
+        window.closeModal = () => { document.getElementById("modal-overlay").style.display = "none"; };
         async function loadFiles(path) {
             currentPath = path;
             document.getElementById("current-path").innerText = "路径: " + (path || "根目录");
             const listEl = document.getElementById("file-list");
             listEl.innerHTML = "<li>⌛ 加载中...</li>";
-
             const items = await listDir(path);
             listEl.innerHTML = "";
-
-            // 返回上级
             if (path !== "") {
                 const li = document.createElement("li");
                 li.innerHTML = `<span class="icon">🔙</span> .. (返回上级)`;
@@ -209,10 +219,7 @@
                 };
                 listEl.appendChild(li);
             }
-
-            // 排序：目录在前
             items.sort((a, b) => (a.type === b.type ? 0 : a.type === "dir" ? -1 : 1));
-
             items.forEach(item => {
                 const li = document.createElement("li");
                 if (item.type === "dir") {
@@ -221,23 +228,12 @@
                 } else {
                     li.innerHTML = `<span class="icon">📄</span> ${item.name}`;
                     li.onclick = () => {
-                        insertFileCard(item.name, item.path);
+                        window.insertMD(`\n<div class="file-card"><span class="file-name">📄 ${item.name}</span><span class="file-download" data-path="${item.path}">⬇️ 下载</span></div>\n`, "");
                         closeModal();
                     };
                 }
                 listEl.appendChild(li);
             });
-        }
-
-        function insertFileCard(name, path) {
-            // 插入文件卡片 HTML
-            const card = `
-<div class="file-card">
-  <span class="file-name">📄 ${name}</span>
-  <span class="file-download" data-path="${path}">⬇️ 下载</span>
-</div>
-`;
-            window.insertMD(card, "");
         }
     </script>
 </body>
