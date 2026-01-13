@@ -35,7 +35,7 @@
 
     <div class="header-area">
         <label>贴文标题</label>
-        <input type="text" id="post-title" placeholder="请输入标题...">
+        <input type="text" id="post-title" placeholder="请输入标题 (建议使用中文)...">
     </div>
 
     <div class="toolbar">
@@ -50,7 +50,7 @@
         <button class="tool-btn" onclick="insertMD('\n---\n', '')">📏 分割线</button>
         <div class="tool-sep"></div>
         
-        <button class="tool-btn" onclick="document.getElementById('img-upload').click()">🖼️ 插入图片</button>
+        <button class="tool-btn" onclick="triggerImgUpload()">🖼️ 插入图片</button>
         <input type="file" id="img-upload" accept="image/*" style="display:none">
 
         <button class="tool-btn" id="openFileBtn" style="margin-left:auto; background:#f0f6fc; color:#0969da">📎 插入文件</button>
@@ -59,10 +59,11 @@
     <textarea id="content" placeholder="在此开始撰写正文..."></textarea>
     
     <div class="footer">
-        <span class="status" id="status-text">初始化中...</span>
+        <span class="status" id="status-text">准备就绪</span>
         <button id="saveBtn" class="btn-save">保存贴文</button>
     </div>
 
+    <!-- 文件选择弹窗 -->
     <div id="modal-overlay">
         <div id="modal">
             <h3 style="margin-top:0">选择要插入的文件</h3>
@@ -75,7 +76,7 @@
     </div>
 
     <script type="module">
-        import { savePost, getPost, generateAutoFilename, listDir, uploadImage } from "./js/api.js";
+        import { savePost, getPost, listDir, uploadImage } from "./js/api.js";
 
         const titleInput = document.getElementById("post-title");
         const contentArea = document.getElementById("content");
@@ -83,70 +84,83 @@
         const saveBtn = document.getElementById("saveBtn");
 
         const params = new URLSearchParams(location.search);
-        const editFilename = params.get("edit");
+        // decodeURIComponent 确保编辑中文文件名时正常显示
+        const editFilename = params.get("edit") ? decodeURIComponent(params.get("edit")) : null;
         
-        // 关键变量：用于存储当前操作的“目标文件名”
-        let currentTargetFilename = "";
-
-        // --- 初始化逻辑 (核心修改) ---
+        // --- 初始化 ---
         async function init() {
             if (editFilename) {
-                // === 编辑模式 ===
-                currentTargetFilename = editFilename;
-                statusText.innerText = `编辑模式: ${currentTargetFilename}`;
+                // 编辑模式
+                statusText.innerText = `正在编辑: ${editFilename}`;
                 saveBtn.innerText = "更新贴文";
                 
                 try {
                     const fullText = await getPost(editFilename);
                     const lines = fullText.split('\n');
+                    
+                    // 尝试从第一行提取标题显示在输入框
                     if (lines[0].startsWith('# ')) {
                         titleInput.value = lines[0].replace('# ', '').trim();
                         contentArea.value = lines.slice(1).join('\n').trim();
                     } else {
-                        titleInput.value = "无标题";
+                        // 如果第一行不是标题，尝试从文件名提取
+                        const nameWithoutDate = editFilename.replace(".md", "").replace(/^\d{4}-\d{2}-\d{2}-/, "");
+                        titleInput.value = nameWithoutDate;
                         contentArea.value = fullText;
                     }
-                } catch(e) { alert("加载文章失败"); }
-                
+                } catch(e) { alert("加载失败: " + e.message); }
             } else {
-                // === 新建模式 ===
-                // 立即预计算文件名，例如 2026-1-14-0x0001.md
-                // 这样后续上传图片时，就知道该往哪个文件夹传了
-                statusText.innerText = "正在预分配文件名...";
-                currentTargetFilename = await generateAutoFilename();
-                statusText.innerText = `新建模式 (目标: ${currentTargetFilename})`;
+                // 新建模式
+                statusText.innerText = "新建模式";
             }
         }
         init();
 
-        // --- 图片上传逻辑 ---
+        // --- 辅助函数：生成当前日期的文件名 ---
+        function generateTargetName(title) {
+            if(editFilename) return editFilename.replace(".md", ""); // 编辑模式用原名
+            
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            // 结果: 2026-01-14-我的标题
+            return `${y}-${m}-${d}-${title}`;
+        }
+
+        // --- 图片上传 ---
+        window.triggerImgUpload = () => {
+            const title = titleInput.value.trim();
+            if(!editFilename && !title) {
+                alert("⚠️ 请先输入【贴文标题】，系统需要用标题来创建图片文件夹！");
+                titleInput.focus();
+                return;
+            }
+            document.getElementById('img-upload').click();
+        };
+
         const imgInput = document.getElementById("img-upload");
         imgInput.addEventListener("change", async () => {
             const file = imgInput.files[0];
             if (!file) return;
-            if (!currentTargetFilename) return alert("初始化未完成，请稍后再试");
 
-            const token = prompt("🖼️ 上传图片验证：请输入 Token:");
+            const title = titleInput.value.trim();
+            // 获取文件夹名：2026-01-14-我的标题
+            const folderName = generateTargetName(title);
+
+            const token = prompt(`📂 图片将存入 images/${folderName}\n请输入 Token:`);
             if (!token) { imgInput.value = ""; return; }
 
-            statusText.innerText = "正在上传图片...";
-            
+            statusText.innerText = "上传图片中...";
             try {
-                // 1. 提取文件夹名：去掉 .md 后缀
-                // 例如 2026-1-14-0x0001.md -> 2026-1-14-0x0001
-                const folderName = currentTargetFilename.replace(".md", "");
-
-                // 2. 调用 API 上传到指定文件夹
                 const imageUrl = await uploadImage(file, folderName, token);
-                
                 const mdImage = `\n![${file.name}](${imageUrl})\n`;
                 window.insertMD(mdImage, "");
-                
-                alert("✅ 图片上传成功！\n存放位置: images/" + folderName);
+                alert("✅ 图片上传成功");
                 statusText.innerText = "图片已插入";
             } catch (e) {
-                alert("❌ 上传失败: " + e.message);
-                statusText.innerText = "上传出错";
+                alert("❌ 失败: " + e.message);
+                statusText.innerText = "上传失败";
             } finally {
                 imgInput.value = "";
             }
@@ -158,19 +172,20 @@
             const body = contentArea.value;
 
             if (!title) return alert("标题不能为空！");
-            if (!currentTargetFilename) return alert("系统错误：目标文件名未生成");
 
             const finalContent = `# ${title}\n\n${body}`;
-            const token = prompt("🔐 请输入 Token 以保存贴文:");
+            const token = prompt("🔐 请输入 Token 以保存:");
             if (!token) return;
 
             statusText.innerText = "正在保存...";
             saveBtn.disabled = true;
 
             try {
-                // 直接使用我们初始化时确定的 currentTargetFilename
-                await savePost(currentTargetFilename, finalContent, token);
-                alert(`✅ 保存成功！\n文件: ${currentTargetFilename}`);
+                // 生成最终文件名: 2026-01-14-我的标题.md
+                const targetFilename = generateTargetName(title) + ".md";
+                
+                await savePost(targetFilename, finalContent, token);
+                alert(`✅ 保存成功！\n文件: ${targetFilename}`);
                 window.location.href = "index.html";
             } catch (e) {
                 alert("❌ 保存失败: " + e.message);
@@ -179,23 +194,17 @@
             }
         };
 
-        // --- 工具栏辅助函数 (保持不变) ---
+        // --- 常用工具 ---
         window.insertMD = (prefix, suffix) => {
             const start = contentArea.selectionStart;
             const end = contentArea.selectionEnd;
             const text = contentArea.value;
-            const selection = text.substring(start, end);
-            contentArea.value = text.substring(0, start) + prefix + selection + suffix + text.substring(end);
+            contentArea.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
             contentArea.focus();
-            contentArea.selectionStart = start + prefix.length;
-            contentArea.selectionEnd = start + prefix.length + selection.length;
         };
-        window.insertTable = () => {
-            const table = `\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n`;
-            window.insertMD(table, "");
-        };
-
-        // --- 文件选择器逻辑 (保持不变) ---
+        window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
+        
+        // --- 文件选择器 (保持不变) ---
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("modal-overlay").style.display = "block";
