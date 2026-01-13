@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的个人博客</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .btn { text-decoration: none; padding: 5px 10px; background: #0969da; color: white; border-radius: 5px; cursor: pointer; border: none; font-size: 14px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        a.title { font-size: 18px; text-decoration: none; color: #333; }
+        a.title:hover { color: #0969da; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>我的博客</h1>
+        <a href="editor.html" class="btn">✍️ 写文章</a>
+    </div>
+    <ul id="list">正在加载文章列表...</ul>
+
+    <script type="module">
+        import { listPosts, downloadFile } from "./js/api.js";
+        
+        const list = document.getElementById("list");
+        const posts = await listPosts();
+        
+        if (posts.length === 0) {
+            list.innerHTML = "还没有文章，快去写一篇吧！";
+        } else {
+            list.innerHTML = "";
+            posts.forEach(file => {
+                if (!file.name.endsWith(".md")) return;
+                
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <a href="post.html?f=${file.name}" class="title">📄 ${file.name}</a>
+                    <button class="btn" style="background:#666" onclick="download('${file.path}')">⬇️ 下载</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // 把下载函数挂载到全局，这样 onclick 才能调用
+        window.download = (path) => downloadFile(path);
+    </script>
+</body>
+</html>
