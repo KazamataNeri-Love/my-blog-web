@@ -1,17 +1,19 @@
-// 🔴 配置区：请修改为你的 GitHub 信息
-const OWNER = "kazamataneri-love"; 
+// 🔴 配置区：已更新为你的信息
+const OWNER = "KazamataNeri-love"; 
 const REPO  = "my-blog-web"; 
 const BRANCH = "main";
 
 const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 
-// 1. 获取文章列表 (只读 posts 目录)
-export async function listPosts() {
-    // 加上时间戳防止缓存
-    const res = await fetch(`${API_BASE}/contents/posts?t=${new Date().getTime()}`);
+// 1. 获取完整文件树 (递归，用于多级目录)
+export async function fetchFileTree() {
+    // 使用 Git Tree API 获取递归文件列表
+    const res = await fetch(`${API_BASE}/git/trees/${BRANCH}?recursive=1&t=${new Date().getTime()}`);
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    // 过滤出 posts/ 开头的文件和文件夹
+    return data.tree.filter(item => item.path.startsWith('posts/'));
 }
 
 // 2. 获取任意目录列表 (用于文件选择器)
@@ -21,11 +23,11 @@ export async function listDir(path = "") {
     return await res.json();
 }
 
-// 3. 获取文件内容
-export async function getPost(filename) {
-    // 处理中文文件名，确保 URL 编码正确
-    const safeFilename = encodeURIComponent(filename);
-    const url = `${RAW_BASE}/posts/${safeFilename}?t=${new Date().getTime()}`;
+// 3. 获取文件内容 (支持完整路径)
+export async function getPost(path) {
+    // path 可能是 "posts/分类/文章.md"
+    const safePath = path.split('/').map(encodeURIComponent).join('/');
+    const url = `${RAW_BASE}/${safePath}?t=${new Date().getTime()}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("文件不存在或无法访问");
     return await res.text();
@@ -37,7 +39,6 @@ export async function downloadFile(pathOrUrl) {
         window.open(pathOrUrl, "_blank");
         return;
     }
-    // 仓库内文件下载
     const url = `${RAW_BASE}/${pathOrUrl}`;
     try {
         const res = await fetch(url);
@@ -45,7 +46,6 @@ export async function downloadFile(pathOrUrl) {
         const blob = await res.blob();
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        // 解码文件名，防止下载下来是乱码
         link.download = decodeURIComponent(pathOrUrl.split('/').pop());
         document.body.appendChild(link);
         link.click();
@@ -55,16 +55,18 @@ export async function downloadFile(pathOrUrl) {
     }
 }
 
-// 5. 保存/更新文章
-export async function savePost(filename, content, token) {
-    // Base64 编码 (处理中文内容)
+// 5. 保存/更新文章 (支持任意路径)
+export async function savePost(fullPath, content, token) {
+    // Base64 编码
     const contentEncoded = btoa(unescape(encodeURIComponent(content)));
-    const safeFilename = encodeURIComponent(filename);
     
     // 检查文件是否存在以获取 sha (用于更新)
     let sha = null;
     try {
-        const check = await fetch(`${API_BASE}/contents/posts/${safeFilename}`, {
+        // API 需要逐级 encode，但不能 encode 斜杠
+        // 简单处理：直接请求 API，API 通常能处理路径中的非 ASCII 字符，但最好 encodeURI
+        const safePath = fullPath.split('/').map(encodeURIComponent).join('/');
+        const check = await fetch(`${API_BASE}/contents/${safePath}`, {
             headers: { "Authorization": `token ${token}` }
         });
         if (check.ok) {
@@ -74,13 +76,15 @@ export async function savePost(filename, content, token) {
     } catch (e) {}
 
     const body = {
-        message: `Update ${filename}`,
+        message: `Update ${fullPath}`,
         content: contentEncoded,
         branch: BRANCH
     };
     if (sha) body.sha = sha;
 
-    const res = await fetch(`${API_BASE}/contents/posts/${safeFilename}`, {
+    // 发送 PUT 请求
+    // 注意：GitHub API 的 contents 接口要求路径参数
+    const res = await fetch(`${API_BASE}/contents/${fullPath}`, {
         method: "PUT",
         headers: {
             "Authorization": `token ${token}`,
@@ -92,15 +96,14 @@ export async function savePost(filename, content, token) {
     if (!res.ok) throw new Error(await res.text());
 }
 
-// 6. 上传图片 (存放至 images/日期-标题/xxx.png)
+// 6. 上传图片 (保持原样)
 export async function uploadImage(file, folderName, token) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
             const contentBase64 = reader.result.split(',')[1];
-            // 构造路径：images/2026-01-14-我的日记/时间戳-图片名.png
-            const safeFolderName = encodeURIComponent(folderName); // 文件夹名可能含中文
+            const safeFolderName = encodeURIComponent(folderName);
             const filename = `${new Date().getTime()}-${file.name}`;
             const path = `images/${safeFolderName}/${filename}`;
             
@@ -111,9 +114,6 @@ export async function uploadImage(file, folderName, token) {
             };
 
             try {
-                // path 这里不需要再次 encode，因为路径中的斜杠不能被转义
-                // 但是 folderName 作为路径一部分，如果是中文，GitHub API 通常能处理
-                // 为了保险，我们在 URL 中拼接时最好小心，但 API_BASE/contents/ 会自动处理
                 const res = await fetch(`${API_BASE}/contents/${path}`, {
                     method: "PUT",
                     headers: {
@@ -124,8 +124,6 @@ export async function uploadImage(file, folderName, token) {
                 });
 
                 if (!res.ok) throw new Error(await res.text());
-                // 返回图片的 Raw CDN URL
-                // 注意：这里要返回 encode 过的 URL 供 Markdown 使用
                 const rawUrl = `${RAW_BASE}/images/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`;
                 resolve(rawUrl);
             } catch (e) {
