@@ -2,178 +2,513 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章编辑器</title>
+    <title>编辑器</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 样式保持你提供的 editor.txt 原样，这里省略 CSS 以节省篇幅，请保留你原来的 CSS -->
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; height: 95vh; }
-        .toolbar { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        input#file-path { flex: 1; padding: 10px; font-size: 16px; margin-right: 10px; background: #eee; border: 1px solid #ccc; color: #555; }
-        textarea { flex: 1; padding: 15px; font-size: 16px; font-family: monospace; line-height: 1.6; resize: none; margin-bottom: 15px; border: 1px solid #ddd; }
+        /* --- 请在此处粘贴你 editor.txt 中的所有 CSS --- */
+        /* --- 基础设置 (等宽字体) --- */
+        body { 
+            margin: 0; padding: 0; height: 100vh;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            background: #fff; color: #333;
+            display: flex; flex-direction: column;
+        }
         
-        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; font-size: 16px; }
-        .btn-save { background: #28a745; color: white; }
-        .btn-del { background: #dc3545; color: white; margin-left: 10px; }
-        .btn-back { background: #6c757d; color: white; margin-right: 10px; }
+        * { box-sizing: border-box; }
+        a { text-decoration: none; }
+
+        /* --- 顶部导航栏 --- */
+        .top-bar {
+            padding: 10px 20px;
+            border-bottom: 1px solid #d0d7de;
+            background: #f6f8fa;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
+        }
+
+        .back-link { color: #0969da; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;}
         
-        /* 简单的加载遮罩 */
-        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 99; font-size: 20px; color: #333; }
-        .hidden { display: none !important; }
+        .header-inputs { flex: 1; margin: 0 20px; display: flex; gap: 10px; align-items: center; }
+        .header-inputs label { font-weight: bold; font-size: 14px; white-space: nowrap; }
+        .header-inputs input {
+            flex: 1; padding: 8px 12px; font-size: 14px;
+            border: 1px solid #d0d7de; border-radius: 6px; font-family: inherit;
+        }
+        .header-inputs input:focus { outline: 2px solid #0969da; border-color: transparent; }
+
+        .header-actions { display: flex; gap: 10px; }
+
+        /* --- 主体区域 (Flex 布局) --- */
+        .main-container {
+            flex: 1; display: flex; overflow: hidden; position: relative;
+        }
+
+        /* 左侧：编辑器 */
+        .editor-pane {
+            flex: 1; display: flex; flex-direction: column;
+            border-right: 1px solid #d0d7de;
+            transition: width 0.3s;
+            min-width: 0; /* 防止 flex 子元素溢出 */
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            padding: 8px 15px; border-bottom: 1px solid #d0d7de;
+            background: #fff; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+        }
+        .tool-btn {
+            background: white; border: 1px solid #d0d7de; padding: 4px 10px;
+            border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;
+            color: #24292f; font-family: inherit; display: flex; align-items: center; gap: 5px;
+        }
+        .tool-btn:hover { background: #f3f4f6; border-color: #8b949e; }
+        .tool-btn.active { background: #eef3f8; color: #0969da; border-color: #0969da; }
+        .tool-sep { width: 1px; height: 20px; background: #d0d7de; margin: 0 5px; }
+
+        textarea {
+            flex: 1; width: 100%; resize: none; border: none; padding: 20px;
+            font-family: inherit; font-size: 14px; line-height: 1.6; outline: none;
+            overflow-y: auto; background: #fff;
+        }
+
+        /* 右侧：预览区 */
+        .preview-pane {
+            flex: 1; overflow-y: auto; padding: 40px;
+            background: #191919; /* 深色背景 */
+            display: none; /* 默认隐藏，单栏模式下通过 toggler 控制 */
+            border-left: 1px solid #333;
+        }
+
+        /* 预览内容样式 (深色模式) */
+        .markdown-body { line-height: 1.8; color: #d4d4d4; font-size: 14px; max-width: 100%; }
+        .markdown-body h1, .markdown-body h2 { color: #fff; border-bottom: 1px solid #333; margin-top: 20px; }
+        .markdown-body a { color: #3794ff; text-decoration: none; }
+        .markdown-body blockquote { border-left: 0.25em solid #3794ff; background: #222; color: #999; padding: 10px; }
+        .markdown-body code { background-color: rgba(110,118,129,0.4); font-family: inherit; padding: 2px 5px; border-radius: 4px; }
+        .markdown-body pre { background-color: #161b22; border: 1px solid #30363d; padding: 16px; overflow: auto; border-radius: 6px; }
+        .markdown-body table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid #30363d; padding: 6px 13px; }
+        .markdown-body img { max-width: 100%; border-radius: 4px; background: #fff; display: block; margin: 10px 0; }
+
+        /* --- 文件卡片样式 --- */
+        .file-card {
+            background: #21262d; 
+            border: 1px solid #30363d; 
+            border-radius: 6px;
+            padding: 12px 16px; 
+            margin: 15px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .file-name { 
+            font-weight: 600; 
+            color: #3794ff; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .file-note {
+            font-size: 12px;
+            color: #8b949e;
+            background: #30363d;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .file-download {
+            color: #e0e0e0; 
+            font-size: 13px; 
+            padding: 4px 10px;
+            background: #30363d; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+        .file-download:hover { 
+            background: #3794ff; 
+            color: white; 
+        }
+
+        /* --- 底部状态栏 --- */
+        .status-bar {
+            padding: 5px 20px; background: #f6f8fa; border-top: 1px solid #d0d7de;
+            font-size: 12px; color: #57606a; display: flex; justify-content: space-between;
+        }
+
+        /* --- 按钮样式 --- */
+        .btn-primary { 
+            background: #2da44e; color: white; border: none; padding: 6px 16px; 
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit;
+        }
+        .btn-primary:hover { background: #2c974b; }
+        .btn-primary:disabled { background: #94d3a2; cursor: wait; }
+
+        /* --- 模态框 --- */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+        .modal { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); width: 400px; max-width: 90%; }
+        .modal h3 { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
+        #img-preview-box { 
+            width: 100%; height: 200px; background: #f6f8fa; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 1px dashed #d0d7de; border-radius: 6px; margin-bottom: 15px; 
+        }
+        #img-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        .modal-input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #d0d7de; border-radius: 4px; box-sizing: border-box; }
+        .modal-label { display:block; font-size:12px; font-weight:bold; margin-bottom:5px; color:#555; }
+        .modal-footer { text-align: right; margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px; }
+        
+        /* 列表弹窗 */
+        #file-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #eee; }
+        #file-list li { padding: 8px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; font-size: 13px; }
+        #file-list li:hover { background: #f6f8fa; }
     </style>
 </head>
 <body>
 
-    <div id="loading">正在连接 GitHub...</div>
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> 返回列表</a>
+        
+        <div class="header-inputs">
+            <label>路径/标题:</label>
+            <input type="text" id="post-title" placeholder="例如: 笔记/Vue/第一课">
+        </div>
 
-    <div class="toolbar">
-        <button class="btn btn-back" onclick="window.close()">关闭</button>
-        <input type="text" id="file-path" disabled title="文件路径不可直接修改，请去主页新建或重命名">
-        <div>
-            <button class="btn btn-save" onclick="saveFile()">保存更改</button>
-            <button class="btn btn-del" onclick="deleteFile()">删除此文</button>
+        <div class="header-actions">
+            <button id="saveBtn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
         </div>
     </div>
 
-    <textarea id="editor-content" placeholder="输入 Markdown 内容..."></textarea>
-
-<script>
-    // ==========================================
-    // ⚠️ 必须与 index.html 的配置完全一致
-    // ==========================================
-    const CONFIG = {
-        owner: 'KazamataNeri-Love',  
-        repo: 'my-blog-web',
-        branch: 'main'
-    };
-    // ==========================================
-
-    // 获取 URL 参数
-    const params = new URLSearchParams(window.location.search);
-    const filePath = params.get('path'); // 例如 posts/学习/a.md
-    let currentSha = null; // 文件的“指纹”，更新时必须带上
-
-    // 1. 权限与初始化检查
-    const token = localStorage.getItem('gh_token');
-    if (!token) {
-        alert("未授权！请先在主页登录。");
-        window.location.href = 'index.html';
-    }
-    if (!filePath) {
-        alert("无效的文件路径");
-        window.close();
-    }
-
-    // 显示路径
-    document.getElementById('file-path').value = filePath;
-
-    // 2. 加载文件内容
-    async function loadContent() {
-        const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${filePath}?ref=${CONFIG.branch}`;
-        try {
-            const res = await fetch(url, {
-                headers: { 'Authorization': `token ${token}` }
-            });
-            
-            if (!res.ok) throw new Error("文件加载失败: " + res.status);
-            
-            const data = await res.json();
-            currentSha = data.sha; // ❗重要：保存 SHA 用于后续更新
-
-            // Base64 解码 (解决中文乱码)
-            const content = decodeURIComponent(escape(window.atob(data.content)));
-            document.getElementById('editor-content').value = content;
-        } catch (e) {
-            alert(e.message);
-        } finally {
-            document.getElementById('loading').classList.add('hidden');
-        }
-    }
-
-    // 3. 保存文件
-    async function saveFile() {
-        if (!currentSha) return alert("原始文件数据未加载，无法保存");
+    <!-- 主体：编辑器 + 预览 -->
+    <div class="main-container" id="main-container">
         
-        const content = document.getElementById('editor-content').value;
-        const message = `Update ${filePath} via Web Editor`;
-        
-        // Base64 编码 (解决中文乱码)
-        const contentBase64 = btoa(unescape(encodeURIComponent(content)));
-
-        document.getElementById('loading').innerText = "正在保存...";
-        document.getElementById('loading').classList.remove('hidden');
-
-        try {
-            const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${filePath}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: message,
-                    content: contentBase64,
-                    sha: currentSha, // ❗必须带上原始 SHA，否则 GitHub 拒绝更新
-                    branch: CONFIG.branch
-                })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                currentSha = data.content.sha; // 更新本地 SHA，以便连续保存
-                alert("保存成功！");
+        <!-- 左侧编辑区 -->
+        <div class="editor-pane" id="editor-pane">
+            <div class="toolbar">
+                <button class="tool-btn" onclick="insertMD('**', '**')"><b>B</b></button>
+                <button class="tool-btn" onclick="insertMD('*', '*')"><i>I</i></button>
+                <button class="tool-btn" onclick="insertMD('# ', '')">H1</button>
+                <button class="tool-btn" onclick="insertMD('## ', '')">H2</button>
+                <div class="tool-sep"></div>
+                <button class="tool-btn" onclick="insertTable()"><i class="fa-solid fa-table"></i></button>
+                <button class="tool-btn" onclick="insertMD('> ', '')"><i class="fa-solid fa-quote-right"></i></button>
+                <button class="tool-btn" onclick="insertMD('\n---\n', '')"><i class="fa-solid fa-ruler-horizontal"></i></button>
+                <div class="tool-sep"></div>
+                <button class="tool-btn" onclick="triggerFileSelect()" title="上传图片"><i class="fa-regular fa-image"></i> 图片</button>
+                <button class="tool-btn" id="openFileBtn" title="插入仓库内文件"><i class="fa-solid fa-paperclip"></i> 文件</button>
+                <button class="tool-btn" id="openExtLinkBtn" title="插入GitHub Release或网盘链接"><i class="fa-solid fa-link"></i> 外部/网盘</button>
                 
-                // 尝试刷新父窗口（如果父窗口是 index.html）
-                if (window.opener && !window.opener.closed) {
-                    window.opener.location.reload(); 
-                }
+                <input type="file" id="img-upload-input" accept="image/*" style="display:none">
+
+                <button class="tool-btn" id="btn-toggle-split" style="margin-left: auto;" onclick="toggleSplitMode()">
+                    <i class="fa-solid fa-columns"></i> 分栏预览
+                </button>
+            </div>
+            
+            <textarea id="content" placeholder="在此撰写 Markdown... (Ctrl+S 保存)"></textarea>
+        </div>
+
+        <!-- 右侧预览区 -->
+        <div class="preview-pane" id="preview-pane">
+            <div id="preview-content" class="markdown-body"></div>
+        </div>
+
+    </div>
+
+    <!-- 底部状态 -->
+    <div class="status-bar">
+        <span id="status-text">准备就绪</span>
+        <span id="word-count">0 字</span>
+    </div>
+
+    <!-- (此处保留原有的模态框 HTML：img-modal-overlay, file-modal-overlay, ext-link-overlay。请直接粘贴你原来的代码) -->
+    <!-- 为节省篇幅，假设模态框代码已存在 -->
+    <div id="img-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>插入图片</h3>
+            <div id="img-preview-box"><span style="color:#999">预览区</span></div>
+            <label class="modal-label">Github Token:</label>
+            <input type="password" id="upload-token" class="modal-input" placeholder="输入 Token">
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="closeImgModal()">取消</button>
+                <button class="btn-primary" id="btn-confirm-upload">上传并插入</button>
+            </div>
+        </div>
+    </div>
+    <div id="file-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>选择仓库文件</h3>
+            <div id="current-path" style="font-size:12px;color:#666;margin-bottom:5px">/</div>
+            <ul id="file-list">加载中...</ul>
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="document.getElementById('file-modal-overlay').style.display='none'">关闭</button>
+            </div>
+        </div>
+    </div>
+    <div id="ext-link-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>插入外部/Release 资源</h3>
+            <label class="modal-label">资源显示名称:</label>
+            <input type="text" id="ext-name" class="modal-input" placeholder="例如: 游戏完整版 v1.0.zip">
+            <label class="modal-label">下载链接 (URL):</label>
+            <input type="text" id="ext-url" class="modal-input" placeholder="https://github.com/.../releases/.../file.zip">
+            <label class="modal-label">提取码/备注 (可选):</label>
+            <input type="text" id="ext-note" class="modal-input" placeholder="例如: 提取码 1234 或 解压密码: none">
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="document.getElementById('ext-link-overlay').style.display='none'">取消</button>
+                <button class="btn-primary" onclick="insertExtLink()">确认插入</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { savePost, getPost, listDir, uploadImage, downloadFile } from "./js/api.js";
+
+        // DOM 元素
+        const titleInput = document.getElementById("post-title");
+        const contentArea = document.getElementById("content");
+        const previewPane = document.getElementById("preview-pane");
+        const previewContent = document.getElementById("preview-content");
+        const btnSplit = document.getElementById("btn-toggle-split");
+        const statusText = document.getElementById("status-text");
+        const wordCount = document.getElementById("word-count");
+        
+        let isSplitMode = false;
+        const params = new URLSearchParams(location.search);
+        // 此处 edit 可能是完整路径 "posts/文件夹/文章.md"
+        const editPath = params.get("edit") ? decodeURIComponent(params.get("edit")) : null;
+
+        // --- 初始化 ---
+        async function init() {
+            if (editPath) {
+                statusText.innerText = `正在编辑: ${editPath}`;
+                try {
+                    const fullText = await getPost(editPath);
+                    const lines = fullText.split('\n');
+                    
+                    // 解析内容：如果第一行是 # 标题，分离出来，但这里我们主要用 input 显示路径
+                    // 为了简化，我们直接把路径显示在 input 里，内容显示在 textarea
+                    // 如果文章自带了 # Title，我们可以保留在正文里，也可以提取
+                    
+                    // 策略：input 显示的是“文件路径/文件名(不含.md)”，正文是全文
+                    // 显示去掉 posts/ 的路径
+                    titleInput.value = editPath.replace(/^posts\//, '').replace('.md', '');
+                    contentArea.value = fullText;
+                    
+                    updatePreview();
+                } catch(e) { alert("读取失败: " + e.message); }
             } else {
-                const err = await res.json();
-                throw new Error(err.message);
+                statusText.innerText = "新建文章 (可在标题框输入 文件夹/文件名)";
             }
-        } catch (e) {
-            alert("保存失败: " + e.message);
-        } finally {
-            document.getElementById('loading').classList.add('hidden');
+            toggleSplitMode();
         }
-    }
+        init();
 
-    // 4. 删除文件
-    async function deleteFile() {
-        if (!confirm("确定要永久删除这个文件吗？此操作无法撤销（除非去 Git 历史找回）。")) return;
+        // --- 分栏与渲染 (保持原样) ---
+        window.toggleSplitMode = () => {
+            isSplitMode = !isSplitMode;
+            if (isSplitMode) {
+                previewPane.style.display = "block";
+                btnSplit.classList.add("active");
+                btnSplit.innerHTML = `<i class="fa-solid fa-table-columns"></i> 关闭分栏`;
+                updatePreview();
+            } else {
+                previewPane.style.display = "none";
+                btnSplit.classList.remove("active");
+                btnSplit.innerHTML = `<i class="fa-solid fa-columns"></i> 分栏预览`;
+            }
+        };
 
-        document.getElementById('loading').innerText = "正在删除...";
-        document.getElementById('loading').classList.remove('hidden');
+        contentArea.addEventListener('input', () => {
+            wordCount.innerText = `${contentArea.value.length} 字`;
+            if (isSplitMode) updatePreview();
+        });
 
-        try {
-            const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${filePath}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Delete ${filePath}`,
-                    sha: currentSha,
-                    branch: CONFIG.branch
-                })
+        function updatePreview() {
+            // 简单渲染，不强行加 # 标题，所见即所得
+            const rawMarkdown = contentArea.value;
+            previewContent.innerHTML = marked.parse(rawMarkdown);
+            
+            previewContent.querySelectorAll('img').forEach(img => {
+                img.onerror = () => { img.style.border = "1px solid red"; img.alt += " (失败)"; };
             });
+            previewContent.querySelectorAll('.file-download').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    downloadFile(btn.getAttribute('data-path'));
+                };
+            });
+        }
 
-            if (res.ok) {
-                alert("删除成功");
+        contentArea.addEventListener('scroll', () => {
+            if (!isSplitMode) return;
+            const percentage = contentArea.scrollTop / (contentArea.scrollHeight - contentArea.offsetHeight);
+            previewPane.scrollTop = percentage * (previewPane.scrollHeight - previewPane.offsetHeight);
+        });
+
+        // --- 图片上传 (基本保持原样，仅文件名处理) ---
+        const imgInput = document.getElementById("img-upload-input");
+        const imgModal = document.getElementById("img-modal-overlay");
+        const imgPreviewBox = document.getElementById("img-preview-box");
+        let selectedImgFile = null;
+
+        window.triggerFileSelect = () => {
+            if(!titleInput.value.trim() && !editPath) return alert("请先输入路径/标题，用于生成图片文件夹");
+            imgInput.click();
+        };
+
+        imgInput.addEventListener("change", () => {
+            if (!imgInput.files[0]) return;
+            selectedImgFile = imgInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
+            reader.readAsDataURL(selectedImgFile);
+            imgModal.style.display = "flex";
+            const savedToken = localStorage.getItem("github_token");
+            if(savedToken) document.getElementById("upload-token").value = savedToken;
+        });
+
+        window.closeImgModal = () => { imgModal.style.display = "none"; imgInput.value = ""; selectedImgFile = null; };
+
+        document.getElementById("btn-confirm-upload").onclick = async function() {
+            const token = document.getElementById("upload-token").value.trim();
+            if(!token) return alert("请输入Token");
+            localStorage.setItem("github_token", token);
+            this.innerText = "上传中..."; this.disabled = true;
+
+            try {
+                // 文件夹名基于输入框的最后一级
+                const inputVal = titleInput.value.trim();
+                const folderName = inputVal.split('/').pop() || "Untitled"; 
+                
+                const url = await uploadImage(selectedImgFile, folderName, token);
+                window.insertMD(`\n![${selectedImgFile.name}](${url})\n`, "");
+                if(isSplitMode) updatePreview();
+                closeImgModal();
+            } catch(e) {
+                alert("上传失败: " + e.message);
+            } finally {
+                this.innerText = "上传并插入"; this.disabled = false;
+            }
+        };
+
+        // --- 外部链接插入 (保持原样) ---
+        const extModal = document.getElementById("ext-link-overlay");
+        document.getElementById("openExtLinkBtn").onclick = () => {
+            document.getElementById("ext-name").value = ""; document.getElementById("ext-url").value = "";
+            document.getElementById("ext-note").value = ""; extModal.style.display = "flex";
+        };
+        window.insertExtLink = () => {
+            const name = document.getElementById("ext-name").value.trim();
+            const url = document.getElementById("ext-url").value.trim();
+            const note = document.getElementById("ext-note").value.trim();
+            if (!name || !url) return alert("名称和链接不能为空");
+            let noteHtml = note ? `<span class="file-note">${note}</span>` : "";
+            const fileCardHtml = `<div class="file-card"><span class="file-name"><i class="fa-solid fa-globe"></i> ${name}</span><div class="file-info">${noteHtml}<a class="file-download" href="javascript:void(0)" data-path="${url}" onclick="event.stopPropagation()"><i class="fa-solid fa-cloud-arrow-down"></i> 下载</a></div></div>`;
+            window.insertMD(`\n${fileCardHtml}\n`, "");
+            extModal.style.display = "none";
+        };
+
+        // --- 仓库文件列表 (保持原样) ---
+        let currentPath = "";
+        document.getElementById("openFileBtn").onclick = () => {
+            document.getElementById("file-modal-overlay").style.display = "flex";
+            loadFiles("");
+        };
+        async function loadFiles(path) {
+            currentPath = path;
+            document.getElementById("current-path").innerText = path || "/";
+            const listEl = document.getElementById("file-list");
+            listEl.innerHTML = "<li>加载中...</li>";
+            const items = await listDir(path);
+            listEl.innerHTML = "";
+            if(path) {
+                const li = document.createElement("li"); li.innerHTML = "🔙 返回上级";
+                li.onclick = () => { const parts = currentPath.split('/'); parts.pop(); loadFiles(parts.join('/')); };
+                listEl.appendChild(li);
+            }
+            items.forEach(item => {
+                const li = document.createElement("li");
+                li.innerHTML = item.type === 'dir' ? `📂 ${item.name}` : `📄 ${item.name}`;
+                li.onclick = () => {
+                    if(item.type === 'dir') loadFiles(item.path);
+                    else {
+                        const fileCardHtml = `<div class="file-card"><span class="file-name"><i class="fa-solid fa-file-lines"></i> ${item.name}</span><div class="file-info"><a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-down"></i> 下载</a></div></div>`;
+                        window.insertMD(`\n${fileCardHtml}\n`, "");
+                        document.getElementById("file-modal-overlay").style.display = 'none';
+                    }
+                };
+                listEl.appendChild(li);
+            });
+        }
+
+        // --- 保存逻辑 (更新为支持路径) ---
+        document.getElementById("saveBtn").onclick = async function() {
+            let inputVal = titleInput.value.trim();
+            const body = contentArea.value;
+            if(!inputVal) return alert("请输入路径/标题");
+
+            let token = localStorage.getItem("github_token");
+            if (!token) token = prompt("请输入 Token:");
+            if (!token) return;
+            localStorage.setItem("github_token", token);
+
+            this.disabled = true; this.innerHTML = "保存中...";
+            
+            try {
+                // 构造完整路径
+                // 如果是新建，用户输入 "笔记/Vue/01"，我们需要补上 "posts/" 和 ".md"
+                // 如果是编辑，inputVal 已经是 "笔记/Vue/01" (我们去掉了 posts/ 前缀显示)
+                
+                let fullPath = inputVal;
+                
+                // 确保以 posts/ 开头
+                if (!fullPath.startsWith('posts/')) {
+                    fullPath = 'posts/' + fullPath;
+                }
+                // 确保以 .md 结尾
+                if (!fullPath.endsWith('.md')) {
+                    fullPath = fullPath + '.md';
+                }
+
+                await savePost(fullPath, body, token);
+                alert("保存成功!");
+                // 刷新主页
                 if (window.opener && !window.opener.closed) {
                     window.opener.location.reload();
                 }
-                window.close();
-            } else {
-                throw new Error("删除失败");
+                window.location.href = `index.html?f=${encodeURIComponent(fullPath)}`;
+            } catch(e) {
+                alert("保存失败: " + e.message);
+                this.disabled = false;
+                this.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> 保存`;
             }
-        } catch (e) {
-            alert(e.message);
-            document.getElementById('loading').classList.add('hidden');
-        }
-    }
+        };
 
-    // 启动加载
-    loadContent();
-</script>
+        window.insertMD = (prefix, suffix) => {
+            const start = contentArea.selectionStart; const end = contentArea.selectionEnd; const text = contentArea.value;
+            contentArea.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
+            contentArea.focus(); contentArea.selectionStart = start + prefix.length; contentArea.selectionEnd = end + prefix.length;
+            if(isSplitMode) updatePreview();
+        };
+        window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); document.getElementById("saveBtn").click(); }
+        });
+    </script>
 </body>
 </html>
