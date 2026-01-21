@@ -9,6 +9,7 @@ const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 // 1. 获取完整文件树 (递归，用于多级目录)
 export async function fetchFileTree() {
     // 使用 Git Tree API 获取递归文件列表
+    // 添加时间戳防止缓存
     const res = await fetch(`${API_BASE}/git/trees/${BRANCH}?recursive=1&t=${new Date().getTime()}`);
     if (!res.ok) return [];
     const data = await res.json();
@@ -26,6 +27,7 @@ export async function listDir(path = "") {
 // 3. 获取文件内容 (支持完整路径)
 export async function getPost(path) {
     // path 可能是 "posts/分类/文章.md"
+    // API 请求 Raw 内容
     const safePath = path.split('/').map(encodeURIComponent).join('/');
     const url = `${RAW_BASE}/${safePath}?t=${new Date().getTime()}`;
     const res = await fetch(url);
@@ -63,8 +65,6 @@ export async function savePost(fullPath, content, token) {
     // 检查文件是否存在以获取 sha (用于更新)
     let sha = null;
     try {
-        // API 需要逐级 encode，但不能 encode 斜杠
-        // 简单处理：直接请求 API，API 通常能处理路径中的非 ASCII 字符，但最好 encodeURI
         const safePath = fullPath.split('/').map(encodeURIComponent).join('/');
         const check = await fetch(`${API_BASE}/contents/${safePath}`, {
             headers: { "Authorization": `token ${token}` }
@@ -84,6 +84,7 @@ export async function savePost(fullPath, content, token) {
 
     // 发送 PUT 请求
     // 注意：GitHub API 的 contents 接口要求路径参数
+    // 这里我们不对 URL 中的斜杠编码，让 API 处理结构
     const res = await fetch(`${API_BASE}/contents/${fullPath}`, {
         method: "PUT",
         headers: {
