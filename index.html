@@ -11,14 +11,13 @@
     
     <style>
         :root {
-            --bg-sidebar: #1e1e1e;
-            --bg-main: #191919;
-            --text-main: #e0e0e0;
-            --text-sub: #858585;
-            --accent-color: #3794ff;
-            --hover-bg: #2d2d2d;
-            --border-color: #333333;
-            --code-bg: #2d2d2d;
+            --bg-sidebar: #1e1e1e;       /* 侧边栏背景 */
+            --bg-main: #191919;          /* 主内容背景 */
+            --text-main: #e0e0e0;        /* 主要文字 */
+            --text-sub: #858585;         /* 次要文字 */
+            --accent-color: #3794ff;     /* 蓝色高亮 */
+            --hover-bg: #2d2d2d;         /* 悬停背景 */
+            --border-color: #333333;     /* 边框颜色 */
             --blockquote-border: #3794ff;
         }
 
@@ -41,7 +40,6 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            transition: transform 0.3s;
         }
 
         .search-container { padding: 15px; border-bottom: 1px solid var(--border-color); }
@@ -56,13 +54,14 @@
         }
 
         .nav-list { flex: 1; overflow-y: auto; padding: 10px 0; list-style: none; }
+        
         .nav-group-title {
-            padding: 10px 20px; font-size: 12px; color: var(--text-sub);
+            padding: 15px 20px 5px; font-size: 12px; color: var(--text-sub);
             font-weight: bold; text-transform: uppercase; display: flex; align-items: center;
         }
         
         .nav-item {
-            padding: 8px 20px 8px 35px; cursor: pointer; display: flex;
+            padding: 8px 20px 8px 30px; cursor: pointer; display: flex;
             align-items: center; text-decoration: none; color: var(--text-sub);
             font-size: 14px; transition: all 0.2s; border-right: 3px solid transparent;
         }
@@ -71,7 +70,7 @@
             color: var(--accent-color); background-color: #262f3e;
             border-right: 3px solid var(--accent-color);
         }
-        .nav-item i { margin-right: 8px; font-size: 14px; }
+        .nav-item i { margin-right: 10px; font-size: 14px; width: 16px; text-align: center; }
 
         .sidebar-footer {
             padding: 15px; border-top: 1px solid var(--border-color);
@@ -89,7 +88,7 @@
         .doc-header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
         
         .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .doc-title { font-size: 32px; font-weight: bold; color: #fff; line-height: 1.3; }
+        .doc-title { font-size: 32px; font-weight: bold; color: #fff; line-height: 1.3; margin-right: 20px;}
         
         .actions { display: flex; gap: 10px; }
         .btn {
@@ -98,8 +97,6 @@
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
         }
         .btn:hover { background-color: #333; border-color: #555; }
-        .btn-primary { background-color: var(--accent-color); color: white; border: none; }
-        .btn-primary:hover { background-color: #2a75d1; }
 
         .doc-meta { display: flex; gap: 20px; color: var(--text-sub); font-size: 13px; align-items: center; }
         .doc-meta span { display: flex; align-items: center; gap: 5px; }
@@ -124,7 +121,7 @@
         /* 代码块 */
         .markdown-body code {
             padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: rgba(110,118,129,0.4);
-            border-radius: 6px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            border-radius: 6px; font-family: "SFMono-Regular", Consolas, monospace;
         }
         .markdown-body pre {
             padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45;
@@ -142,7 +139,7 @@
         /* 图片 */
         .markdown-body img { max-width: 100%; box-sizing: content-box; background-color: #fff; border-radius: 4px; }
 
-        /* 自定义文件卡片样式 */
+        /* 自定义文件卡片 */
         .file-card {
             background: #21262d; border: 1px solid #30363d; border-radius: 6px;
             padding: 12px 16px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;
@@ -180,25 +177,24 @@
 
         <ul class="nav-list" id="sidebar-list">
             <li style="text-align:center; color:#666; padding:20px;">
-                <i class="fa-solid fa-spinner fa-spin"></i> 加载列表中...
+                <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
             </li>
         </ul>
 
         <div class="sidebar-footer">
             <span><i class="fa-solid fa-database"></i> 本地模式</span>
-            <span id="version-tag">v2.0 SPA</span>
+            <span id="version-tag">v2.1 Integrated</span>
         </div>
     </aside>
 
     <!-- 主内容区 -->
     <main class="main-content">
-        <!-- 头部信息 -->
+        <!-- 头部信息 (仅在阅读文章时显示) -->
         <div class="doc-header" id="header-area" style="display:none;">
             <div class="header-top">
                 <h1 class="doc-title" id="article-title">无标题</h1>
                 <div class="actions">
-                    <a id="btn-edit" href="#" class="btn"><i class="fa-solid fa-pen"></i> 编辑</a>
-                    <a href="editor.html" class="btn btn-primary"><i class="fa-solid fa-plus"></i> 新建</a>
+                    <a id="btn-edit" href="#" class="btn"><i class="fa-solid fa-pen"></i> 编辑本文</a>
                 </div>
             </div>
             
@@ -209,9 +205,11 @@
             </div>
         </div>
 
-        <!-- 空状态 / 欢迎页 -->
+        <!-- 空状态 / 欢迎页 (仅在首页显示) -->
         <div id="empty-state" class="markdown-body" style="margin-top: 50px; text-align: center; color: var(--text-sub);">
-            <div style="font-size: 60px; margin-bottom: 20px; opacity: 0.2;"><i class="fa-regular fa-compass"></i></div>
+            <div style="font-size: 60px; margin-bottom: 20px; opacity: 0.2;">
+                <i class="fa-regular fa-compass"></i>
+            </div>
             <h2>欢迎来到知识库</h2>
             <p>请从左侧选择一篇文章开始阅读。</p>
         </div>
@@ -239,29 +237,31 @@
 
         // --- 初始化 ---
         async function init() {
+            // 1. 加载侧边栏
             await loadSidebar();
             
-            // 检查 URL 是否带有 ?f=xxx.md 参数
+            // 2. 检查 URL 是否带有 ?f=xxx.md 参数
             const params = new URLSearchParams(location.search);
             const filename = params.get("f");
             
             if (filename) {
                 loadContent(decodeURIComponent(filename));
             } else {
-                // 如果没有参数，默认显示首页
                 showHome();
             }
         }
         init();
 
-        // --- 加载侧边栏 ---
+        // --- 加载侧边栏数据 ---
         async function loadSidebar() {
             try {
                 const posts = await listPosts();
+                // 仅保留 .md 文件
                 const mdFiles = posts.filter(p => p.name.endsWith(".md"));
-                mdFiles.sort((a, b) => b.name.localeCompare(a.name)); // 倒序
+                // 排序：最新的在上
+                mdFiles.sort((a, b) => b.name.localeCompare(a.name));
                 
-                allPosts = mdFiles;
+                allPosts = mdFiles; // 存入全局变量供搜索用
                 renderSidebar(mdFiles);
             } catch (e) {
                 console.error(e);
@@ -269,11 +269,21 @@
             }
         }
 
-        // --- 渲染侧边栏列表 (新增：首页按钮) ---
+        // --- 渲染侧边栏列表 ---
         function renderSidebar(files) {
             sidebarList.innerHTML = "";
             
-            // 1. 新增：始终在最上方显示“返回首页”按钮
+            // 1. [新增] 新建贴文按钮 (跳转到编辑器)
+            const newPostLi = document.createElement("li");
+            newPostLi.innerHTML = `
+                <a href="editor.html" class="nav-item" style="color: var(--text-sub);">
+                    <i class="fa-solid fa-plus" style="color: #2da44e;"></i>
+                    <span style="font-weight:bold; color: var(--text-main);">新建贴文</span>
+                </a>
+            `;
+            sidebarList.appendChild(newPostLi);
+
+            // 2. [新增] 首页按钮 (重置视图)
             const homeLi = document.createElement("li");
             homeLi.innerHTML = `
                 <div class="nav-item" id="nav-home" onclick="showHome()">
@@ -283,20 +293,28 @@
             `;
             sidebarList.appendChild(homeLi);
 
+            // 分隔线
+            const separator = document.createElement("li");
+            separator.style.borderBottom = "1px solid var(--border-color)";
+            separator.style.margin = "8px 0";
+            sidebarList.appendChild(separator);
+
             if (files.length === 0) {
                 sidebarList.innerHTML += "<li class='nav-item' style='pointer-events:none; opacity:0.5'>暂无匹配文章</li>";
                 return;
             }
 
-            // 分组标题
+            // 3. 列表标题
             const groupTitle = document.createElement("li");
             groupTitle.className = "nav-group-title";
             groupTitle.innerHTML = `<i class="fa-regular fa-folder-open"></i> 文章列表 (${files.length})`;
             sidebarList.appendChild(groupTitle);
 
-            // 2. 渲染文章列表
+            // 4. 渲染文件
             for (const file of files) {
                 const li = document.createElement("li");
+                
+                // 处理显示名：去掉 .md 和日期前缀
                 let rawName = decodeURIComponent(file.name);
                 let displayName = rawName.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                 
@@ -312,36 +330,97 @@
             updateActiveState();
         }
 
-        // --- 新增：返回首页逻辑 ---
+        // --- 核心：加载并渲染文章内容 ---
+        async function loadContent(filename) {
+            // UI 状态切换
+            headerArea.style.display = "none";
+            emptyState.style.display = "none";
+            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
+            
+            // 更新 URL (不刷新)
+            const newUrl = `${window.location.pathname}?f=${encodeURIComponent(filename)}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            updateActiveState();
+
+            try {
+                let text = await getPost(filename);
+                
+                // 1. 标题提取与去重逻辑
+                const lines = text.split('\n');
+                const firstLine = lines[0].trim();
+                let renderText = text;
+
+                if (firstLine.startsWith('# ')) {
+                    // 如果文章自带 H1，提取到顶部 UI，并从正文删除
+                    uiTitle.innerText = firstLine.replace(/^#\s+/, '').trim();
+                    renderText = lines.slice(1).join('\n');
+                } else {
+                    // 否则使用文件名作为标题
+                    uiTitle.innerText = filename.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+                }
+
+                // 2. 解析 Markdown
+                articleBody.innerHTML = marked.parse(renderText);
+
+                // 3. 更新元数据
+                uiFile.innerText = filename;
+                const dateMatch = filename.match(/^(\d{4}-\d{1,2}-\d{1,2})-/);
+                uiDate.innerHTML = `<i class="fa-regular fa-calendar"></i> ${dateMatch ? dateMatch[1] : '日期未知'}`;
+                
+                // 更新编辑按钮
+                btnEdit.href = `editor.html?edit=${encodeURIComponent(filename)}`;
+
+                // 显示头部
+                headerArea.style.display = "block";
+
+                // 4. 绑定下载按钮事件
+                articleBody.querySelectorAll('.file-download').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        downloadFile(btn.getAttribute('data-path'));
+                    };
+                });
+                
+                // 5. 图片错误处理
+                articleBody.querySelectorAll('img').forEach(img => {
+                    img.onerror = () => { img.style.border = "1px solid #555"; img.alt += " (图片加载失败)"; };
+                });
+
+            } catch (e) {
+                console.error(e);
+                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px;">❌ 加载失败: ${e.message}</div>`;
+            }
+        }
+
+        // --- 返回首页逻辑 ---
         window.showHome = () => {
             // 清除 URL 参数
             const url = new URL(window.location);
             url.searchParams.delete('f');
             window.history.pushState({}, '', url);
 
-            // 切换 UI 显示
-            headerArea.style.display = "none";     // 隐藏文章头部
-            articleBody.innerHTML = "";            // 清空文章内容
-            emptyState.style.display = "block";    // 显示欢迎页
+            headerArea.style.display = "none";
+            articleBody.innerHTML = "";
+            emptyState.style.display = "block";
             
             updateActiveState();
         };
 
+        // --- 点击处理 ---
         window.handlePostClick = (filename, element) => {
             loadContent(filename);
             // 移动端可在此处添加关闭侧边栏逻辑
         };
 
-        // 辅助：更新侧边栏高亮状态
+        // --- 辅助：高亮状态管理 ---
         function updateActiveState() {
-            // 移除所有 active
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
             const params = new URLSearchParams(location.search);
             const currentFile = params.get("f");
 
             if (!currentFile) {
-                // 如果没有文件参数，高亮“首页”
+                // 高亮首页按钮
                 const homeBtn = document.getElementById("nav-home");
                 if(homeBtn) homeBtn.classList.add("active");
             } else {
@@ -351,61 +430,7 @@
             }
         }
 
-        // --- 加载内容 (修改：去重标题) ---
-        async function loadContent(filename) {
-            headerArea.style.display = "none";
-            emptyState.style.display = "none";
-            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
-            
-            const newUrl = `${window.location.pathname}?f=${encodeURIComponent(filename)}`;
-            window.history.pushState({ path: newUrl }, '', newUrl);
-            updateActiveState();
-
-            try {
-                let text = await getPost(filename);
-                
-                // --- 修复标题重复显示逻辑 ---
-                const lines = text.split('\n');
-                const firstLine = lines[0].trim();
-                let renderText = text; // 默认渲染全部
-
-                // 如果第一行是 H1 (# 标题)
-                if (firstLine.startsWith('# ')) {
-                    // 1. 提取标题给 UI 头部用
-                    uiTitle.innerText = firstLine.replace(/^#\s+/, '').trim();
-                    // 2. 从正文中移除第一行，防止 marked 再次渲染它
-                    renderText = lines.slice(1).join('\n');
-                } else {
-                    // 如果没写 # 标题，就用文件名作为 UI 标题
-                    uiTitle.innerText = filename.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
-                }
-                // ---------------------------
-
-                articleBody.innerHTML = marked.parse(renderText);
-
-                // 更新元数据
-                uiFile.innerText = filename;
-                const dateMatch = filename.match(/^(\d{4}-\d{1,2}-\d{1,2})-/);
-                uiDate.innerHTML = `<i class="fa-regular fa-calendar"></i> ${dateMatch ? dateMatch[1] : '日期未知'}`;
-                btnEdit.href = `editor.html?edit=${encodeURIComponent(filename)}`;
-
-                headerArea.style.display = "block";
-
-                // 绑定下载按钮事件
-                articleBody.querySelectorAll('.file-download').forEach(btn => {
-                    btn.onclick = (e) => {
-                        e.preventDefault();
-                        downloadFile(btn.getAttribute('data-path'));
-                    };
-                });
-
-            } catch (e) {
-                console.error(e);
-                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px;">❌ 加载失败: ${e.message}</div>`;
-            }
-        }
-
-        // 搜索功能
+        // --- 搜索功能 ---
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             const filtered = allPosts.filter(p => p.name.toLowerCase().includes(keyword));
