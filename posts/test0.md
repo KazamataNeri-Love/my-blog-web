@@ -1,0 +1,2 @@
+
+<div class="file-card"><span class="file-name"><i class="fa-solid fa-globe"></i> 换手段位 II 段</span><div class="file-info"><a class="file-download" href="javascript:void(0)" data-path="https://github.com/KazamataNeri-Love/my-blog-web/releases/download/Beatmaps/Course_1.mcz" onclick="event.stopPropagation()"><i class="fa-solid fa-cloud-arrow-down"></i> 下载</a></div></div>
