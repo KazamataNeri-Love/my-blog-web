@@ -91,6 +91,42 @@
         .markdown-body th, .markdown-body td { border: 1px solid #30363d; padding: 6px 13px; }
         .markdown-body img { max-width: 100%; border-radius: 4px; background: #fff; display: block; margin: 10px 0; }
 
+        /* --- 🔴 关键修复：文件卡片样式 (与 Index 保持一致) --- */
+        .file-card {
+            background: #21262d; 
+            border: 1px solid #30363d; 
+            border-radius: 6px;
+            padding: 12px 16px; 
+            margin: 15px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .file-name { 
+            font-weight: 600; 
+            color: #3794ff; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        .file-download {
+            color: #e0e0e0; 
+            font-size: 13px; 
+            padding: 4px 10px;
+            background: #30363d; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+        .file-download:hover { 
+            background: #3794ff; 
+            color: white; 
+        }
+
         /* --- 底部状态栏 --- */
         .status-bar {
             padding: 5px 20px; background: #f6f8fa; border-top: 1px solid #d0d7de;
@@ -212,7 +248,7 @@
     </div>
 
     <script type="module">
-        import { savePost, getPost, listDir, uploadImage } from "./js/api.js";
+        import { savePost, getPost, listDir, uploadImage, downloadFile } from "./js/api.js";
 
         // DOM 元素
         const titleInput = document.getElementById("post-title");
@@ -295,6 +331,15 @@
                 img.onerror = () => { 
                     img.style.border = "1px solid red"; 
                     img.alt += " (加载中或失败...)"; 
+                };
+            });
+
+            // 🔴 新增：让预览区的下载按钮也能点击 (调用 downloadFile)
+            previewContent.querySelectorAll('.file-download').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    downloadFile(btn.getAttribute('data-path'));
                 };
             });
         }
@@ -419,7 +464,7 @@
         };
         window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
         
-        // 文件选择器 (复用之前逻辑)
+        // 文件选择器
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("file-modal-overlay").style.display = "flex";
@@ -449,7 +494,15 @@
                 li.onclick = () => {
                     if(item.type === 'dir') loadFiles(item.path);
                     else {
-                        window.insertMD(`[下载 ${item.name}](${item.download_url})`, "");
+                        // 🔴 关键修复：插入 HTML 卡片结构
+                        const fileCardHtml = `
+<div class="file-card">
+    <span class="file-name"><i class="fa-solid fa-file-lines"></i> ${item.name}</span>
+    <a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()">
+        <i class="fa-solid fa-arrow-down"></i> 下载
+    </a>
+</div>`;
+                        window.insertMD(`\n${fileCardHtml}\n`, "");
                         document.getElementById("file-modal-overlay").style.display = 'none';
                     }
                 };
