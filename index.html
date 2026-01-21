@@ -3,363 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的 GitHub 博客</title>
+    <title>我的知识库</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <style>
-        /* --- CSS 样式 --- */
-        body { margin: 0; display: flex; height: 100vh; font-family: sans-serif; overflow: hidden; }
-        
-        /* 左侧侧边栏 */
-        #sidebar { 
-            width: 260px; 
-            background: #f7f7f7; 
-            border-right: 1px solid #ddd; 
-            display: flex; flex-direction: column; 
-            padding: 10px;
+        :root {
+            --bg-sidebar: #1e1e1e;
+            --bg-main: #191919;
+            --text-main: #e0e0e0;
+            --text-sub: #858585;
+            --accent-color: #3794ff;
+            --hover-bg: #2d2d2d;
+            --border-color: #333333;
+            --blockquote-border: #3794ff;
         }
-        #sidebar h3 { margin: 10px 0; font-size: 16px; color: #333; }
-        
-        /* 目录树样式 */
-        .tree-container { flex: 1; overflow-y: auto; }
-        ul { list-style: none; padding-left: 15px; margin: 0; }
-        li { margin: 2px 0; }
-        
-        .node-row { 
-            display: flex; align-items: center; 
-            padding: 4px 8px; cursor: pointer; border-radius: 4px; 
-            font-size: 14px; color: #444; user-select: none;
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "JetBrains Mono", "Microsoft YaHei", monospace;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            letter-spacing: -0.5px;
         }
-        .node-row:hover { background: #e0e0e0; }
-        .node-row.active { background: #d0e8ff; color: #0066cc; }
-        .icon { margin-right: 6px; width: 16px; text-align: center; }
+
+        input, button, select, textarea { font-family: inherit; }
+
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .search-container { padding: 15px; border-bottom: 1px solid var(--border-color); }
+        .search-box {
+            background: #2d2d2d; border: 1px solid #3e3e3e; border-radius: 4px;
+            display: flex; align-items: center; padding: 6px 10px;
+        }
+        .search-box i { color: var(--text-sub); font-size: 14px; }
+        .search-box input {
+            background: transparent; border: none; color: var(--text-main);
+            margin-left: 8px; width: 100%; outline: none; font-size: 13px;
+        }
+
+        .nav-list { flex: 1; overflow-y: auto; padding: 10px 0; list-style: none; }
         
-        /* 旋转箭头 */
-        .arrow { font-size: 10px; margin-right: 5px; transition: transform 0.2s; display: inline-block; color: #999;}
-        .arrow.open { transform: rotate(90deg); }
-        .arrow.hidden { visibility: hidden; }
-
-        /* 右侧内容区 */
-        #main { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
-        #content { max-width: 800px; margin: 0 auto; line-height: 1.6; }
+        .nav-group-title {
+            padding: 15px 20px 5px; font-size: 12px; color: var(--text-sub);
+            font-weight: bold; text-transform: uppercase; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
         
-        /* 顶部用户栏 */
-        #user-bar { position: absolute; top: 10px; right: 20px; display: flex; gap: 10px; align-items: center; }
-        .avatar-btn { width: 36px; height: 36px; background: #ddd; border-radius: 50%; cursor: pointer; text-align: center; line-height: 36px; font-size: 20px; }
-        .avatar-btn.logged-in { background: #4caf50; color: white; }
+        .nav-item {
+            padding: 8px 20px 8px 30px; cursor: pointer; display: flex;
+            align-items: center; text-decoration: none; color: var(--text-sub);
+            font-size: 13px; transition: all 0.2s; border-right: 3px solid transparent;
+        }
+        .nav-item:hover { background-color: var(--hover-bg); color: var(--text-main); }
+        .nav-item.active {
+            color: var(--accent-color); background-color: #262f3e;
+            border-right: 3px solid var(--accent-color);
+        }
+        .nav-item i { margin-right: 10px; font-size: 14px; width: 16px; text-align: center; }
 
-        /* 工具按钮 */
-        .btn { padding: 5px 12px; cursor: pointer; background: white; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
-        .btn-primary { background: #007bff; color: white; border: none; }
-        .hidden { display: none; }
+        /* --- 🟡 新增/修改：多级目录缩进与折叠样式 (不破坏原UI) --- */
+        .nested-ul { display: none; padding-left: 0; list-style: none; background: rgba(0,0,0,0.1); }
+        .folder-open > .nested-ul { display: block; }
+        .folder-icon { transition: transform 0.2s; }
+        .folder-open > .nav-item > .folder-icon { transform: rotate(90deg); color: var(--accent-color); }
+        /* 每一级缩进增加 */
+        .nav-item.level-1 { padding-left: 30px; }
+        .nav-item.level-2 { padding-left: 45px; }
+        .nav-item.level-3 { padding-left: 60px; }
+        .nav-item.level-4 { padding-left: 75px; }
+        /* ---------------------------------------------------- */
 
-        /* 模态框 */
-        #modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
-        .modal { background: white; padding: 20px; border-radius: 8px; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .sidebar-footer {
+            padding: 15px; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; color: var(--text-sub); font-size: 12px;
+        }
+
+        .main-content {
+            flex: 1; overflow-y: auto; padding: 40px 60px;
+            background-image: linear-gradient(to bottom, #1e1e1e 0%, var(--bg-main) 300px);
+            position: relative;
+        }
+
+        .doc-header { margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .doc-title { font-size: 28px; font-weight: bold; color: #fff; line-height: 1.3; margin-right: 20px;}
+        .actions { display: flex; gap: 10px; }
+        .btn {
+            background-color: var(--hover-bg); color: var(--text-main); border: 1px solid var(--border-color);
+            padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn:hover { background-color: #333; border-color: #555; }
+
+        .doc-meta { display: flex; gap: 20px; color: var(--text-sub); font-size: 12px; align-items: center; }
+        
+        .markdown-body { line-height: 1.7; color: #d4d4d4; max-width: 900px; font-size: 14px; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #fff; margin-top: 24px; margin-bottom: 16px; font-weight: 600; }
+        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3em; }
+        .markdown-body a { color: var(--accent-color); text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body blockquote { padding: 10px 15px; color: #999; border-left: 0.25em solid var(--blockquote-border); margin: 0 0 16px 0; background: #222; border-radius: 0 4px 4px 0; }
+        .markdown-body code { padding: 0.2em 0.4em; font-size: 85%; background-color: rgba(110,118,129,0.4); border-radius: 6px; font-family: inherit; }
+        .markdown-body pre { padding: 16px; overflow: auto; background-color: #161b22; border-radius: 6px; border: 1px solid #30363d; }
+        .markdown-body pre code { background-color: transparent; padding: 0; }
+        .markdown-body table { border-spacing: 0; border-collapse: collapse; width: 100%; margin-bottom: 16px; display: block; overflow: auto;}
+        .markdown-body table th, .markdown-body table td { padding: 6px 13px; border: 1px solid #30363d; }
+        .markdown-body table th { background-color: #161b22; }
+        .markdown-body img { max-width: 100%; border-radius: 4px; background-color: #fff; }
+
+        /* 文件卡片样式 */
+        .file-card { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px 16px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .file-name { font-weight: 600; color: var(--accent-color); display: flex; align-items: center; gap: 8px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .file-info { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .file-note { font-size: 12px; color: #8b949e; background: #30363d; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+        .file-download { color: var(--text-main); font-size: 13px; padding: 4px 10px; background: #30363d; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; }
+        .file-download:hover { background: var(--accent-color); color: white; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-sidebar); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; position: absolute; height: 100%; z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+            .sidebar.open { display: flex; }
+            .main-content { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- 左侧目录 -->
-    <div id="sidebar">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3>📚 文章目录</h3>
-            <button id="btn-create" class="btn btn-primary hidden" onclick="showCreateModal()">+</button>
-        </div>
-        <div class="tree-container" id="tree-root">
-            <div style="padding:10px; color:#666;">正在加载 GitHub 数据...</div>
-        </div>
-    </div>
-
-    <!-- 右侧主内容 -->
-    <div id="main">
-        <!-- 顶部账号栏 -->
-        <div id="user-bar">
-            <button id="btn-edit" class="btn hidden">✎ 编辑此文</button>
-            <div id="avatar" class="avatar-btn" title="点击输入 Token">👤</div>
-        </div>
-
-        <div id="content">
-            <h1>欢迎</h1>
-            <p>请点击左侧目录查看文章。</p>
-        </div>
-    </div>
-
-    <!-- 新建文件模态框 -->
-    <div id="modal-overlay">
-        <div class="modal">
-            <h3>新建文件/文件夹</h3>
-            <p style="font-size:12px; color:#666;">路径示例: 学习/笔记.md (创建文件夹和文件)</p>
-            <input type="text" id="new-path" placeholder="文件夹/文件名.md" style="width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box;">
-            <div style="text-align: right;">
-                <button class="btn" onclick="closeModal()">取消</button>
-                <button class="btn btn-primary" onclick="confirmCreate()">创建</button>
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-input" placeholder="搜索文章...">
             </div>
         </div>
-    </div>
 
-<script>
-    // ==========================================
-    // ⚠️ 请在这里配置你的 GitHub 信息
-    // ==========================================
-    const CONFIG = {
-        owner: 'KazamataNeri-Love',    // 例如 'zhangsan'
-        repo: 'my-blog-web',          // 例如 'my-blog'
-        branch: 'main',             // 分支名，通常是 main 或 master
-        postsRoot: 'posts'          // 文章存放的根目录名
-    };
-    // ==========================================
+        <ul class="nav-list" id="sidebar-list">
+            <li style="text-align:center; color:#666; padding:20px;">
+                <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
+            </li>
+        </ul>
 
-    let allFiles = []; // 存储从 GitHub 获取的原始文件列表
+        <div class="sidebar-footer">
+            <span><i class="fa-solid fa-database"></i> GitHub Tree</span>
+            <span id="version-tag">v3.0 Tree</span>
+        </div>
+    </aside>
 
-    // --- 1. Token 管理 ---
-    const Token = {
-        get: () => localStorage.getItem('gh_token'),
-        set: (t) => { localStorage.setItem('gh_token', t); location.reload(); },
-        clear: () => { localStorage.removeItem('gh_token'); location.reload(); },
-        has: () => !!localStorage.getItem('gh_token')
-    };
-
-    // --- 2. GitHub API 封装 ---
-    async function ghFetch(url, options = {}) {
-        const headers = options.headers || {};
-        const token = Token.get();
-        if (token) headers['Authorization'] = `token ${token}`;
-        
-        const res = await fetch(url, { ...options, headers });
-        if (res.status === 401 || res.status === 403) {
-            // 如果只有读取权限不够（比如私有仓库）或者超限，这里会报错
-            console.warn("API 权限问题或限流");
-        }
-        return res;
-    }
-
-    // --- 3. 核心：获取目录树 ---
-    async function init() {
-        updateAuthUI();
-        
-        // 使用 GitHub Git Data API 获取完整树结构 (recursive=1)
-        const apiUrl = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}?recursive=1`;
-        
-        try {
-            const res = await ghFetch(apiUrl);
-            if (!res.ok) throw new Error("加载失败，请检查用户名/仓库名或 Token");
-            const data = await res.json();
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="doc-header" id="header-area" style="display:none;">
+            <div class="header-top">
+                <h1 class="doc-title" id="article-title">无标题</h1>
+                <div class="actions">
+                    <a id="btn-edit" href="#" class="btn" target="_blank"><i class="fa-solid fa-pen"></i> 编辑</a>
+                </div>
+            </div>
             
-            // 筛选出 posts/ 下的文件，排除 posts/ 本身
-            allFiles = data.tree.filter(item => 
-                item.path.startsWith(CONFIG.postsRoot + '/') && item.type === 'blob' // blob 代表文件
+            <div class="doc-meta">
+                <span id="article-date"><i class="fa-regular fa-calendar"></i> -</span>
+                <span><i class="fa-regular fa-user"></i> Admin</span>
+                <span id="article-file" style="opacity:0.6; font-size:10px;">filename.md</span>
+            </div>
+        </div>
+
+        <div id="empty-state" class="markdown-body" style="margin-top: 50px; text-align: center; color: var(--text-sub);">
+            <div style="font-size: 60px; margin-bottom: 20px; opacity: 0.2;">
+                <i class="fa-regular fa-compass"></i>
+            </div>
+            <h2>> 欢迎来到知识库 <</h2>
+            <p>点击左侧目录查看文章，或者搜索。</p>
+        </div>
+
+        <div id="article-body" class="markdown-body"></div>
+    </main>
+
+    <script type="module">
+        import { fetchFileTree, getPost, downloadFile } from "./js/api.js";
+        
+        // DOM 元素引用
+        const sidebarList = document.getElementById("sidebar-list");
+        const searchInput = document.getElementById("search-input");
+        const headerArea = document.getElementById("header-area");
+        const emptyState = document.getElementById("empty-state");
+        const articleBody = document.getElementById("article-body");
+        
+        const uiTitle = document.getElementById("article-title");
+        const uiDate = document.getElementById("article-date");
+        const uiFile = document.getElementById("article-file");
+        const btnEdit = document.getElementById("btn-edit");
+
+        let allFiles = []; // 存储所有文件节点，用于搜索
+
+        // --- 初始化 ---
+        async function init() {
+            await loadSidebar();
+            
+            const params = new URLSearchParams(location.search);
+            const path = params.get("f");
+            
+            if (path) {
+                loadContent(decodeURIComponent(path));
+            } else {
+                showHome();
+            }
+        }
+        init();
+
+        // --- 加载侧边栏数据 (Tree) ---
+        async function loadSidebar() {
+            try {
+                // 使用 fetchFileTree 获取 Git Tree
+                allFiles = await fetchFileTree();
+                
+                // 过滤只显示 .md 文件用于搜索，但构建树时使用所有路径
+                // 构建树结构
+                const tree = buildTree(allFiles);
+                renderSidebarTree(tree);
+
+            } catch (e) {
+                console.error(e);
+                sidebarList.innerHTML = `<li style="color:#ff6b6b; padding:15px">⚠️ 加载失败: ${e.message}</li>`;
+            }
+        }
+
+        // --- 核心：路径转嵌套对象 ---
+        function buildTree(files) {
+            const root = {};
+            files.forEach(file => {
+                if (file.type !== 'blob' && file.type !== 'tree') return; // 只处理文件和目录
+                if (!file.path.endsWith('.md') && file.type === 'blob') return; // 隐藏非md文件
+
+                // path: posts/A/B/c.md -> 去掉 posts/
+                const parts = file.path.replace(/^posts\//, '').split('/');
+                
+                let current = root;
+                parts.forEach((part, index) => {
+                    if (!current[part]) {
+                        current[part] = {
+                            name: part,
+                            path: (index === parts.length - 1 && file.type === 'blob') ? file.path : null, // 只有文件才有path
+                            children: {}
+                        };
+                    }
+                    current = current[part].children;
+                });
+            });
+            return root;
+        }
+
+        // --- 核心：递归渲染树 ---
+        function renderSidebarTree(treeData) {
+            sidebarList.innerHTML = "";
+
+            // 1. 固定头部：新建按钮
+            const newPostLi = document.createElement("li");
+            newPostLi.innerHTML = `
+                <a href="editor.html" target="_blank" class="nav-item" style="color: var(--text-sub);">
+                    <i class="fa-solid fa-plus" style="color: #2da44e;"></i>
+                    <span style="font-weight:bold; color: var(--text-main);">新建贴文</span>
+                </a>
+            `;
+            sidebarList.appendChild(newPostLi);
+
+            // 2. 固定头部：首页
+            const homeLi = document.createElement("li");
+            homeLi.innerHTML = `
+                <div class="nav-item" id="nav-home" onclick="showHome()">
+                    <i class="fa-solid fa-house"></i>
+                    <span>首页 / 简介</span>
+                </div>
+            `;
+            sidebarList.appendChild(homeLi);
+
+            const separator = document.createElement("li");
+            separator.style.borderBottom = "1px solid var(--border-color)";
+            separator.style.margin = "8px 0";
+            sidebarList.appendChild(separator);
+
+            // 3. 递归渲染目录
+            // 先排序：文件夹在前，文件在后
+            const container = document.createDocumentFragment();
+            // 初始层级 level = 1
+            createTreeNodes(treeData, container, 1);
+            sidebarList.appendChild(container);
+
+            updateActiveState();
+        }
+
+        function createTreeNodes(nodes, parentEl, level) {
+            // 将对象转为数组以便排序
+            const keys = Object.keys(nodes).sort((a, b) => {
+                const nodeA = nodes[a];
+                const nodeB = nodes[b];
+                const isFolderA = Object.keys(nodeA.children).length > 0 && !nodeA.path;
+                const isFolderB = Object.keys(nodeB.children).length > 0 && !nodeB.path;
+                
+                if (isFolderA && !isFolderB) return -1;
+                if (!isFolderA && isFolderB) return 1;
+                return a.localeCompare(b, 'zh-CN');
+            });
+
+            keys.forEach(key => {
+                const node = nodes[key];
+                const isFolder = Object.keys(node.children).length > 0 && !node.path;
+                
+                const li = document.createElement("li");
+                
+                // 计算显示名称
+                let displayName = node.name.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+                
+                if (isFolder) {
+                    li.innerHTML = `
+                        <div class="nav-item level-${level}" onclick="toggleFolder(this)">
+                            <i class="fa-solid fa-caret-right folder-icon" style="width:10px; margin-right:5px;"></i>
+                            <i class="fa-regular fa-folder" style="color:#dcb67a;"></i>
+                            <span>${displayName}</span>
+                        </div>
+                    `;
+                    // 子容器
+                    const ul = document.createElement("ul");
+                    ul.className = "nested-ul";
+                    createTreeNodes(node.children, ul, level + 1);
+                    li.appendChild(ul);
+                } else {
+                    // 文件
+                    li.innerHTML = `
+                        <div class="nav-item file-item level-${level}" data-path="${node.path}" onclick="handlePostClick('${node.path}')">
+                            <i class="fa-regular fa-file-lines"></i>
+                            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</span>
+                        </div>
+                    `;
+                }
+                parentEl.appendChild(li);
+            });
+        }
+
+        // --- 全局交互函数 ---
+        window.toggleFolder = (el) => {
+            el.parentElement.classList.toggle("folder-open");
+        };
+
+        window.showHome = () => {
+            const url = new URL(window.location);
+            url.searchParams.delete('f');
+            window.history.pushState({}, '', url);
+            headerArea.style.display = "none";
+            articleBody.innerHTML = "";
+            emptyState.style.display = "block";
+            updateActiveState();
+        };
+
+        window.handlePostClick = (path) => {
+            loadContent(path);
+        };
+
+        // --- 加载内容 ---
+        async function loadContent(path) {
+            headerArea.style.display = "none";
+            emptyState.style.display = "none";
+            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
+            
+            const newUrl = `${window.location.pathname}?f=${encodeURIComponent(path)}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            updateActiveState();
+
+            try {
+                let text = await getPost(path);
+                const lines = text.split('\n');
+                const firstLine = lines[0].trim();
+                let renderText = text;
+
+                if (firstLine.startsWith('# ')) {
+                    uiTitle.innerText = firstLine.replace(/^#\s+/, '').trim();
+                    renderText = lines.slice(1).join('\n');
+                } else {
+                    const filename = path.split('/').pop();
+                    uiTitle.innerText = filename.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+                }
+
+                articleBody.innerHTML = marked.parse(renderText);
+                uiFile.innerText = path; // 显示完整路径
+                
+                // 编辑按钮链接到 editor.html，带上完整路径
+                btnEdit.href = `editor.html?edit=${encodeURIComponent(path)}`;
+                headerArea.style.display = "block";
+
+                // 绑定下载事件
+                articleBody.querySelectorAll('.file-download').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        downloadFile(btn.getAttribute('data-path'));
+                    };
+                });
+                
+                articleBody.querySelectorAll('img').forEach(img => {
+                    img.onerror = () => { img.style.border = "1px solid #555"; img.alt += " (图片加载失败)"; };
+                });
+
+            } catch (e) {
+                console.error(e);
+                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px;">❌ 加载失败: ${e.message}</div>`;
+            }
+        }
+
+        function updateActiveState() {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const params = new URLSearchParams(location.search);
+            const currentPath = params.get("f");
+
+            if (!currentPath) {
+                const homeBtn = document.getElementById("nav-home");
+                if(homeBtn) homeBtn.classList.add("active");
+            } else {
+                // 找到对应的文件节点
+                const activeItem = document.querySelector(`.file-item[data-path="${decodeURIComponent(currentPath)}"]`);
+                if(activeItem) {
+                    activeItem.classList.add("active");
+                    // 自动展开父级目录
+                    let parent = activeItem.parentElement.parentElement; // ul.nested-ul
+                    while (parent && parent.classList.contains('nested-ul')) {
+                        parent.parentElement.classList.add('folder-open');
+                        parent = parent.parentElement.parentElement;
+                    }
+                }
+            }
+        }
+
+        // --- 搜索 (保留扁平搜索) ---
+        searchInput.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            
+            // 如果搜索为空，重新渲染树
+            if (!keyword) {
+                const tree = buildTree(allFiles);
+                renderSidebarTree(tree);
+                return;
+            }
+
+            // 如果有搜索词，渲染扁平列表
+            sidebarList.innerHTML = "";
+            const matched = allFiles.filter(f => 
+                f.type === 'blob' && f.path.endsWith('.md') && 
+                f.path.toLowerCase().includes(keyword)
             );
 
-            // 渲染侧边栏
-            renderSidebar(allFiles);
-
-        } catch (e) {
-            document.getElementById('tree-root').innerHTML = `<p style="color:red; padding:10px;">错误：${e.message}</p>`;
-        }
-    }
-
-    // --- 4. 路径转树形结构算法 ---
-    function buildTreeFromPaths(fileList) {
-        const root = { name: "root", children: {} };
-
-        fileList.forEach(file => {
-            // 去掉开头的 "posts/"
-            const relativePath = file.path.substring(CONFIG.postsRoot.length + 1);
-            const parts = relativePath.split('/'); // ["技术", "前端", "a.md"]
-            
-            let current = root;
-            parts.forEach((part, index) => {
-                if (!current.children[part]) {
-                    current.children[part] = {
-                        name: part,
-                        // 如果是路径最后一段，则是文件
-                        type: index === parts.length - 1 ? 'file' : 'folder',
-                        path: file.path, // 完整路径
-                        sha: file.sha,
-                        children: {}
-                    };
-                }
-                current = current.children[part];
-            });
-        });
-        return root.children;
-    }
-
-    // --- 5. 渲染逻辑 (递归) ---
-    function renderSidebar(fileList) {
-        const treeRoot = document.getElementById('tree-root');
-        treeRoot.innerHTML = '';
-        
-        const treeData = buildTreeFromPaths(fileList);
-        const ul = createTreeDom(treeData);
-        treeRoot.appendChild(ul);
-    }
-
-    function createTreeDom(nodes) {
-        const ul = document.createElement('ul');
-        
-        // 对节点排序：文件夹在前，文件在后
-        const sortedKeys = Object.keys(nodes).sort((a, b) => {
-            const nodeA = nodes[a];
-            const nodeB = nodes[b];
-            if (nodeA.type === nodeB.type) return a.localeCompare(b);
-            return nodeA.type === 'folder' ? -1 : 1;
-        });
-
-        sortedKeys.forEach(key => {
-            const node = nodes[key];
-            const li = document.createElement('li');
-
-            // 1. 节点行 UI
-            const row = document.createElement('div');
-            row.className = 'node-row';
-            
-            // 图标与箭头
-            const arrow = document.createElement('span');
-            arrow.className = `arrow ${node.type === 'folder' ? '' : 'hidden'}`;
-            arrow.innerText = '▶';
-            
-            const icon = document.createElement('span');
-            icon.className = 'icon';
-            icon.innerText = node.type === 'folder' ? '📁' : '📄';
-
-            const text = document.createElement('span');
-            text.innerText = node.name.replace('.md', ''); // 隐藏 .md 后缀
-
-            row.append(arrow, icon, text);
-            li.appendChild(row);
-
-            // 2. 交互逻辑
-            if (node.type === 'folder') {
-                const childUl = createTreeDom(node.children);
-                childUl.style.display = 'none'; // 默认折叠
-                li.appendChild(childUl);
-
-                row.onclick = (e) => {
-                    e.stopPropagation();
-                    const isClosed = childUl.style.display === 'none';
-                    childUl.style.display = isClosed ? 'block' : 'none';
-                    arrow.classList.toggle('open', isClosed);
-                    icon.innerText = isClosed ? '📂' : '📁';
-                };
-            } else {
-                // 是文件，点击加载
-                row.onclick = () => loadPost(node.path, row);
+            if (matched.length === 0) {
+                sidebarList.innerHTML = "<li style='padding:15px; color:#666'>无搜索结果</li>";
+                return;
             }
 
-            ul.appendChild(li);
-        });
-        return ul;
-    }
-
-    // --- 6. 加载文章内容 ---
-    async function loadPost(path, domElement) {
-        // 高亮当前选中的菜单
-        document.querySelectorAll('.node-row').forEach(el => el.classList.remove('active'));
-        if(domElement) domElement.classList.add('active');
-
-        document.getElementById('content').innerHTML = '加载中...';
-        
-        // 这里的 path 是 "posts/xxx/xxx.md"
-        const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}?ref=${CONFIG.branch}`;
-        
-        try {
-            const res = await ghFetch(url);
-            const data = await res.json();
-            
-            // GitHub API 返回的内容是 Base64 编码的
-            // 使用 decodeURIComponent(escape(window.atob(str))) 解决中文乱码
-            const content = decodeURIComponent(escape(window.atob(data.content)));
-
-            // 简单的 Markdown 转 HTML (你可能需要引入 marked.js 库来做得更好)
-            // 这里只做简单演示：
-            document.getElementById('content').innerHTML = `
-                <h1 style="border-bottom:1px solid #eee; padding-bottom:10px;">${data.name.replace('.md','')}</h1>
-                <div style="white-space: pre-wrap;">${content}</div>
-            `;
-            
-            // 更新编辑按钮链接
-            const btnEdit = document.getElementById('btn-edit');
-            btnEdit.onclick = () => window.open(`editor.html?path=${encodeURIComponent(path)}`, '_blank');
-
-        } catch (e) {
-            document.getElementById('content').innerText = "加载失败: " + e.message;
-        }
-    }
-
-    // --- 7. UI 与 账号逻辑 ---
-    function updateAuthUI() {
-        const avatar = document.getElementById('avatar');
-        const btnCreate = document.getElementById('btn-create');
-        const btnEdit = document.getElementById('btn-edit');
-
-        if (Token.has()) {
-            avatar.innerText = '👑';
-            avatar.classList.add('logged-in');
-            avatar.title = "已登录 (点击登出)";
-            btnCreate.classList.remove('hidden');
-            btnEdit.classList.remove('hidden');
-        } else {
-            avatar.innerText = '👤';
-            avatar.classList.remove('logged-in');
-            avatar.title = "点击输入 Token 登录";
-            btnCreate.classList.add('hidden');
-            btnEdit.classList.add('hidden');
-        }
-    }
-
-    document.getElementById('avatar').onclick = () => {
-        if (Token.has()) {
-            if (confirm("要清除 Token 退出登录吗？")) Token.clear();
-        } else {
-            const t = prompt("请输入 GitHub Personal Access Token (权限: repo):");
-            if (t) Token.set(t);
-        }
-    };
-
-    // --- 8. 创建功能 (多级目录实现核心) ---
-    window.showCreateModal = () => document.getElementById('modal-overlay').style.display = 'flex';
-    window.closeModal = () => document.getElementById('modal-overlay').style.display = 'none';
-
-    window.confirmCreate = async () => {
-        const input = document.getElementById('new-path').value; // 例如: "笔记/JavaScript/新文章.md"
-        if (!input) return;
-
-        // 拼接完整路径
-        const fullPath = `${CONFIG.postsRoot}/${input}`;
-        const content = "# 新文章\n\n请开始编写...";
-        const message = `Create ${input} via Web`;
-
-        // GitHub API 创建文件 (PUT)
-        const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${fullPath}`;
-        
-        try {
-            const res = await ghFetch(url, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    message: message,
-                    content: btoa(unescape(encodeURIComponent(content))), // Base64 编码
-                    branch: CONFIG.branch
-                })
+            matched.forEach(file => {
+                const li = document.createElement("li");
+                const displayName = file.path.replace("posts/", "").replace(".md", "");
+                li.innerHTML = `
+                    <div class="nav-item file-item" data-path="${file.path}" onclick="handlePostClick('${file.path}')">
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</span>
+                    </div>
+                `;
+                sidebarList.appendChild(li);
             });
+        });
 
-            if (res.ok) {
-                alert("创建成功！");
-                closeModal();
-                // 刷新页面以显示新文件
-                location.reload();
-                // 也可以直接跳转到编辑页
-                // window.open(`editor.html?path=${encodeURIComponent(fullPath)}`, '_blank');
-            } else {
-                const err = await res.json();
-                alert("创建失败: " + err.message);
-            }
-        } catch (e) {
-            alert("网络错误: " + e.message);
-        }
-    };
-
-    // 启动
-    init();
-</script>
+    </script>
 </body>
 </html>
