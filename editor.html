@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>编辑器</title>
-    <!-- 1. 引入 Marked 解析器 -->
+    <!-- 引入 Marked 解析器 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- 引入 FontAwesome (用于图标) -->
+    <!-- 引入 FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- 基础样式 (保持编辑器原本的明亮风格，但换用等宽字体) --- */
+        /* --- 基础样式 --- */
         body { 
             max-width: 900px; margin: 20px auto; padding: 20px; 
             font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -21,10 +21,10 @@
         .header-area { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; font-size: 14px;}
         
-        input[type="text"] { 
-            width: 100%; padding: 10px; font-size: 16px; 
+        input[type="text"], input[type="password"] { 
+            width: 100%; padding: 10px; font-size: 14px; 
             border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; 
-            font-family: inherit;
+            font-family: inherit; margin-bottom: 10px;
         }
         input:focus { outline: 2px solid #0969da; border-color: transparent; }
 
@@ -32,7 +32,7 @@
         .tab-nav {
             display: flex;
             border-bottom: 1px solid #d0d7de;
-            margin-bottom: 0; /* 紧贴下方内容 */
+            margin-bottom: 0; 
         }
         .tab-btn {
             background: transparent;
@@ -45,22 +45,22 @@
             color: #57606a;
             border-radius: 6px 6px 0 0;
             font-family: inherit;
-            margin-bottom: -1px; /* 盖住底边框 */
+            margin-bottom: -1px; 
         }
         .tab-btn:hover { color: #0969da; }
         .tab-btn.active {
             background: #fff;
             border-color: #d0d7de;
-            border-bottom-color: #fff; /* 遮挡底线，形成连通效果 */
+            border-bottom-color: #fff;
             color: #0969da;
         }
 
-        /* --- 编辑区域容器 --- */
+        /* --- 编辑区域 --- */
         #editor-view { display: block; }
         
         .toolbar { 
             background: #f6f8fa; padding: 8px; 
-            border: 1px solid #d0d7de; border-top: none; /* 上方由 Tab 处理 */
+            border: 1px solid #d0d7de; border-top: none; 
             border-bottom: none; 
             display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
         }
@@ -80,48 +80,29 @@
         }
         textarea:focus { border-color: #0969da; }
 
-        /* --- 预览区域容器 (模拟 index.html 的深色模式) --- */
+        /* --- 预览区域 --- */
         #preview-view { 
             display: none; 
-            border: 1px solid #d0d7de; /* 外框保持浅色，内部深色 */
+            border: 1px solid #d0d7de; 
             border-top: none;
             border-radius: 0 0 6px 6px;
             min-height: 500px;
             padding: 40px;
-            background: #191919; /* 对应 var(--bg-main) */
+            background: #191919; 
         }
 
-        /* 预览内容的深色样式 (从 index.html 移植) */
+        /* 预览样式 */
         .markdown-body { line-height: 1.8; color: #d4d4d4; font-size: 14px; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { 
-            color: #fff; margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; 
-        }
-        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid #333; padding-bottom: 0.3em; }
-        .markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid #333; padding-bottom: 0.3em; }
-        .markdown-body p { margin-bottom: 16px; }
+        .markdown-body h1, .markdown-body h2 { color: #fff; border-bottom: 1px solid #333; }
         .markdown-body a { color: #3794ff; text-decoration: none; }
-        .markdown-body a:hover { text-decoration: underline; }
-        .markdown-body blockquote {
-            padding: 0 1em; color: #999; border-left: 0.25em solid #3794ff;
-            margin: 0 0 16px 0; background: #222; padding: 10px 15px; border-radius: 0 4px 4px 0;
-        }
-        .markdown-body code {
-            padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: rgba(110,118,129,0.4);
-            border-radius: 6px; font-family: inherit;
-        }
-        .markdown-body pre {
-            padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45;
-            background-color: #161b22; border-radius: 6px; border: 1px solid #30363d;
-        }
-        .markdown-body pre code { background-color: transparent; padding: 0; }
-        .markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
-        .markdown-body table th, .markdown-body table td { padding: 6px 13px; border: 1px solid #30363d; }
-        .markdown-body table th { font-weight: 600; background-color: #161b22; }
-        .markdown-body table tr { background-color: #191919; }
-        .markdown-body table tr:nth-child(2n) { background-color: #161b22; }
-        .markdown-body img { max-width: 100%; background-color: #fff; border-radius: 4px; }
+        .markdown-body blockquote { border-left: 0.25em solid #3794ff; background: #222; color: #999; }
+        .markdown-body code { background-color: rgba(110,118,129,0.4); font-family: inherit; }
+        .markdown-body pre { background-color: #161b22; border: 1px solid #30363d; padding: 16px; overflow: auto; }
+        .markdown-body table { border-collapse: collapse; width: 100%; }
+        .markdown-body th, .markdown-body td { border: 1px solid #30363d; padding: 6px 13px; }
+        .markdown-body img { max-width: 100%; border-radius: 4px; background: #fff; }
 
-        /* --- 底部与模态框 --- */
+        /* --- 底部与按钮 --- */
         .footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
         .status { color: #666; font-size: 13px; }
         .btn-save { 
@@ -129,17 +110,27 @@
             border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit;
         }
         .btn-save:hover { background: #2c974b; }
-        .btn-save:disabled { background: #94d3a2; cursor: not-allowed; }
         
         .back-link { color: #0969da; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;}
         
-        /* 文件弹窗样式 */
-        #modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 999; }
-        #modal { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 450px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
-        #file-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #eee; margin-top: 10px; border-radius: 4px; }
+        /* --- 通用模态框 --- */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+        .modal { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); width: 400px; max-width: 90%; position: relative; }
+        .modal h3 { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .modal-footer { margin-top: 15px; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
+        
+        /* 图片预览区域 */
+        #img-preview-box { 
+            width: 100%; height: 200px; background: #f6f8fa; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 1px dashed #d0d7de; border-radius: 6px; margin-bottom: 15px; overflow: hidden;
+        }
+        #img-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        /* 文件列表 */
+        #file-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; }
         #file-list li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; font-size: 13px; }
         #file-list li:hover { background: #f6f8fa; }
-        .icon { margin-right: 8px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -152,7 +143,7 @@
         <input type="text" id="post-title" placeholder="请输入标题 (建议使用中文)...">
     </div>
 
-    <!-- 2. 新增：标签切换按钮 -->
+    <!-- 标签切换 -->
     <div class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('edit')" id="tab-edit">
             <i class="fa-solid fa-pen-to-square"></i> 撰写
@@ -162,36 +153,35 @@
         </button>
     </div>
 
-    <!-- 编辑视图 (Toolbar + Textarea) -->
+    <!-- 编辑视图 -->
     <div id="editor-view">
         <div class="toolbar">
-            <button class="tool-btn" onclick="insertMD('**', '**')"><b>B</b> 加粗</button>
-            <button class="tool-btn" onclick="insertMD('*', '*')"><i>I</i> 斜体</button>
+            <button class="tool-btn" onclick="insertMD('**', '**')"><b>B</b></button>
+            <button class="tool-btn" onclick="insertMD('*', '*')"><i>I</i></button>
             <div class="tool-sep"></div>
             <button class="tool-btn" onclick="insertMD('# ', '')">H1</button>
             <button class="tool-btn" onclick="insertMD('## ', '')">H2</button>
             <div class="tool-sep"></div>
             <button class="tool-btn" onclick="insertTable()"><i class="fa-solid fa-table"></i> 表格</button>
             <button class="tool-btn" onclick="insertMD('> ', '')"><i class="fa-solid fa-quote-right"></i> 引用</button>
-            <button class="tool-btn" onclick="insertMD('\n---\n', '')"><i class="fa-solid fa-ruler-horizontal"></i> 分割线</button>
+            <button class="tool-btn" onclick="insertMD('\n---\n', '')"><i class="fa-solid fa-ruler-horizontal"></i> 分割</button>
             <div class="tool-sep"></div>
             
-            <button class="tool-btn" onclick="triggerImgUpload()"><i class="fa-regular fa-image"></i> 图片</button>
-            <input type="file" id="img-upload" accept="image/*" style="display:none">
+            <button class="tool-btn" onclick="triggerFileSelect()"><i class="fa-regular fa-image"></i> 图片</button>
+            <!-- 隐藏的文件输入框 -->
+            <input type="file" id="img-upload-input" accept="image/*" style="display:none">
 
             <button class="tool-btn" id="openFileBtn" style="margin-left:auto; background:#f0f6fc; color:#0969da">
-                <i class="fa-solid fa-paperclip"></i> 插入文件
+                <i class="fa-solid fa-paperclip"></i> 文件
             </button>
         </div>
 
         <textarea id="content" placeholder="在此开始撰写正文... 支持 Markdown 语法"></textarea>
     </div>
 
-    <!-- 3. 新增：预览视图 (默认隐藏) -->
+    <!-- 预览视图 -->
     <div id="preview-view">
-        <div id="preview-content" class="markdown-body">
-            <!-- 渲染后的 HTML 将放在这里 -->
-        </div>
+        <div id="preview-content" class="markdown-body"></div>
     </div>
     
     <div class="footer">
@@ -199,14 +189,33 @@
         <button id="saveBtn" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> 保存贴文</button>
     </div>
 
-    <!-- 文件选择弹窗 (保持不变) -->
-    <div id="modal-overlay">
-        <div id="modal">
-            <h3 style="margin-top:0">选择要插入的文件</h3>
+    <!-- 1. 图片上传模态框 (新功能) -->
+    <div id="img-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>插入图片</h3>
+            <!-- 预览区域 -->
+            <div id="img-preview-box">
+                <span style="color:#999">暂无预览</span>
+            </div>
+            
+            <label style="font-size:12px;">Token (用于鉴权):</label>
+            <input type="password" id="upload-token" placeholder="请输入 GitHub Token">
+            
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="closeImgModal()">取消</button>
+                <button class="btn-save" id="btn-confirm-upload">确认上传</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 文件选择模态框 -->
+    <div id="file-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>选择要插入的文件</h3>
             <div id="current-path" style="font-size: 12px; color:#666; margin-bottom:5px;">路径: /</div>
             <ul id="file-list">加载中...</ul>
-            <div style="margin-top:15px; text-align:right">
-                <button class="tool-btn" onclick="closeModal()">关闭</button>
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="document.getElementById('file-modal-overlay').style.display='none'">关闭</button>
             </div>
         </div>
     </div>
@@ -220,6 +229,15 @@
         const saveBtn = document.getElementById("saveBtn");
         const previewContent = document.getElementById("preview-content");
 
+        const imgInput = document.getElementById("img-upload-input");
+        const imgModal = document.getElementById("img-modal-overlay");
+        const imgPreviewBox = document.getElementById("img-preview-box");
+        const uploadTokenInput = document.getElementById("upload-token");
+        const confirmUploadBtn = document.getElementById("btn-confirm-upload");
+
+        // 临时存储选中的图片文件
+        let selectedImgFile = null;
+
         const params = new URLSearchParams(location.search);
         const editFilename = params.get("edit") ? decodeURIComponent(params.get("edit")) : null;
         
@@ -228,18 +246,14 @@
             if (editFilename) {
                 statusText.innerText = `正在编辑: ${editFilename}`;
                 saveBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> 更新贴文`;
-                
                 try {
                     const fullText = await getPost(editFilename);
                     const lines = fullText.split('\n');
-                    
-                    // 尝试分离标题和正文
                     if (lines[0].startsWith('# ')) {
                         titleInput.value = lines[0].replace('# ', '').trim();
                         contentArea.value = lines.slice(1).join('\n').trim();
                     } else {
-                        const nameWithoutDate = editFilename.replace(".md", "").replace(/^\d{4}-\d{2}-\d{2}-/, "");
-                        titleInput.value = nameWithoutDate;
+                        titleInput.value = editFilename.replace(".md", "").replace(/^\d{4}-\d{2}-\d{2}-/, "");
                         contentArea.value = fullText;
                     }
                 } catch(e) { alert("加载失败: " + e.message); }
@@ -249,7 +263,7 @@
         }
         init();
 
-        // --- 标签页切换逻辑 ---
+        // --- 标签页切换 ---
         window.switchTab = (tab) => {
             const editorView = document.getElementById("editor-view");
             const previewView = document.getElementById("preview-view");
@@ -262,30 +276,109 @@
                 btnEdit.classList.add("active");
                 btnPreview.classList.remove("active");
             } else {
-                // 切换到预览时：执行渲染
                 editorView.style.display = "none";
                 previewView.style.display = "block";
                 btnEdit.classList.remove("active");
                 btnPreview.classList.add("active");
 
-                // 获取当前内容并渲染
                 const rawMarkdown = contentArea.value;
                 const title = titleInput.value.trim();
-                
-                // 模拟文章结构：加上 H1 标题
                 const previewMd = `# ${title || '无标题'}\n\n${rawMarkdown}`;
                 
-                // 使用 marked 渲染
                 previewContent.innerHTML = marked.parse(previewMd);
-                
-                // 处理图片错误
                 previewContent.querySelectorAll('img').forEach(img => {
                     img.onerror = () => { img.style.border = "1px solid #555"; img.alt += " (未找到)"; };
                 });
             }
         };
 
-        // --- 辅助函数：生成目标文件名 ---
+        // --- 图片上传新逻辑 ---
+        
+        // 1. 点击按钮触发文件选择
+        window.triggerFileSelect = () => {
+            const title = titleInput.value.trim();
+            if(!editFilename && !title) {
+                alert("⚠️ 请先输入【贴文标题】，系统需要用标题来创建图片文件夹！");
+                titleInput.focus();
+                return;
+            }
+            imgInput.click();
+        };
+
+        // 2. 文件选中后，显示预览模态框
+        imgInput.addEventListener("change", () => {
+            const file = imgInput.files[0];
+            if (!file) return;
+            selectedImgFile = file;
+
+            // 本地预览 (FileReader)
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
+            };
+            reader.readAsDataURL(file);
+
+            // 显示模态框
+            imgModal.style.display = "flex";
+            // 尝试从 localStorage 获取 token 填充 (可选优化)
+            const savedToken = localStorage.getItem("github_token");
+            if(savedToken) uploadTokenInput.value = savedToken;
+        });
+
+        // 3. 关闭模态框
+        window.closeImgModal = () => {
+            imgModal.style.display = "none";
+            imgInput.value = ""; // 清空 input 防止重复触发
+            selectedImgFile = null;
+        };
+
+        // 4. 确认上传
+        confirmUploadBtn.onclick = async () => {
+            const token = uploadTokenInput.value.trim();
+            if(!token) return alert("请输入 Token");
+            
+            // 保存 token 方便下次使用
+            localStorage.setItem("github_token", token);
+            
+            confirmUploadBtn.disabled = true;
+            confirmUploadBtn.innerText = "上传中...";
+
+            try {
+                const title = titleInput.value.trim();
+                // 辅助函数：生成文件夹名
+                let folderName = "";
+                if(editFilename) {
+                    folderName = editFilename.replace(".md", ""); 
+                } else {
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    folderName = `${y}-${m}-${d}-${title}`;
+                }
+
+                const imageUrl = await uploadImage(selectedImgFile, folderName, token);
+                
+                // 插入 Markdown
+                const mdImage = `\n![${selectedImgFile.name}](${imageUrl})\n`;
+                window.insertMD(mdImage, "");
+                
+                // 关闭并提示
+                closeImgModal();
+                statusText.innerText = "✅ 图片已插入";
+                
+                // 可选：如果想上传后立即看效果，可以自动切到 Preview 标签，但可能会打断写作
+                // window.switchTab('preview'); 
+
+            } catch (e) {
+                alert("❌ 上传失败: " + e.message);
+            } finally {
+                confirmUploadBtn.disabled = false;
+                confirmUploadBtn.innerText = "确认上传";
+            }
+        };
+
+        // --- 辅助函数：生成文件名 ---
         function generateTargetName(title) {
             if(editFilename) return editFilename.replace(".md", ""); 
             const now = new Date();
@@ -295,43 +388,6 @@
             return `${y}-${m}-${d}-${title}`;
         }
 
-        // --- 图片上传 ---
-        window.triggerImgUpload = () => {
-            const title = titleInput.value.trim();
-            if(!editFilename && !title) {
-                alert("⚠️ 请先输入【贴文标题】，系统需要用标题来创建图片文件夹！");
-                titleInput.focus();
-                return;
-            }
-            document.getElementById('img-upload').click();
-        };
-
-        const imgInput = document.getElementById("img-upload");
-        imgInput.addEventListener("change", async () => {
-            const file = imgInput.files[0];
-            if (!file) return;
-
-            const title = titleInput.value.trim();
-            const folderName = generateTargetName(title);
-
-            const token = prompt(`📂 图片将存入 images/${folderName}\n请输入 Token:`);
-            if (!token) { imgInput.value = ""; return; }
-
-            statusText.innerText = "上传图片中...";
-            try {
-                const imageUrl = await uploadImage(file, folderName, token);
-                const mdImage = `\n![${file.name}](${imageUrl})\n`;
-                window.insertMD(mdImage, "");
-                alert("✅ 图片上传成功");
-                statusText.innerText = "图片已插入";
-            } catch (e) {
-                alert("❌ 失败: " + e.message);
-                statusText.innerText = "上传失败";
-            } finally {
-                imgInput.value = "";
-            }
-        });
-
         // --- 保存逻辑 ---
         saveBtn.onclick = async () => {
             const title = titleInput.value.trim();
@@ -340,8 +396,21 @@
             if (!title) return alert("标题不能为空！");
 
             const finalContent = `# ${title}\n\n${body}`;
-            const token = prompt("🔐 请输入 Token 以保存:");
+            
+            // 使用新模态框同样的 Token 存储机制，或者复用 modal?
+            // 为了简单，这里还是用 prompt，或者你可以也做一个 Token 模态框
+            let token = localStorage.getItem("github_token");
+            if (!token) {
+                token = prompt("🔐 请输入 Token 以保存:");
+            } else {
+                // 如果有缓存，稍微确认一下，或者直接保存
+                // 这里为了安全还是让用户确认一下，或者直接静默保存
+                 const useCache = confirm("检测到缓存的 Token，是否直接使用？");
+                 if(!useCache) token = prompt("🔐 请输入 Token 以保存:");
+            }
+            
             if (!token) return;
+            localStorage.setItem("github_token", token);
 
             statusText.innerText = "正在保存...";
             saveBtn.disabled = true;
@@ -373,10 +442,9 @@
         // --- 文件选择器逻辑 ---
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
-            document.getElementById("modal-overlay").style.display = "block";
+            document.getElementById("file-modal-overlay").style.display = "flex";
             loadFiles("");
         };
-        window.closeModal = () => { document.getElementById("modal-overlay").style.display = "none"; };
         
         async function loadFiles(path) {
             currentPath = path;
@@ -405,7 +473,7 @@
                     li.innerHTML = `<span class="icon">📄</span> ${item.name}`;
                     li.onclick = () => {
                         window.insertMD(`\n<div class="file-card"><span class="file-name">📄 ${item.name}</span><span class="file-download" data-path="${item.path}">⬇️ 下载</span></div>\n`, "");
-                        closeModal();
+                        document.getElementById("file-modal-overlay").style.display='none';
                     };
                 }
                 listEl.appendChild(li);
