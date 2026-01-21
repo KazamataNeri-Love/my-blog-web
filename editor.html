@@ -6,9 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 样式保持你提供的 editor.txt 原样，这里省略 CSS 以节省篇幅，请保留你原来的 CSS -->
     <style>
-        /* --- 请在此处粘贴你 editor.txt 中的所有 CSS --- */
         /* --- 基础设置 (等宽字体) --- */
         body { 
             margin: 0; padding: 0; height: 100vh;
@@ -235,8 +233,7 @@
         <span id="word-count">0 字</span>
     </div>
 
-    <!-- (此处保留原有的模态框 HTML：img-modal-overlay, file-modal-overlay, ext-link-overlay。请直接粘贴你原来的代码) -->
-    <!-- 为节省篇幅，假设模态框代码已存在 -->
+    <!-- 模态框 -->
     <div id="img-modal-overlay" class="modal-overlay">
         <div class="modal">
             <h3>插入图片</h3>
@@ -249,6 +246,7 @@
             </div>
         </div>
     </div>
+    
     <div id="file-modal-overlay" class="modal-overlay">
         <div class="modal">
             <h3>选择仓库文件</h3>
@@ -259,6 +257,7 @@
             </div>
         </div>
     </div>
+    
     <div id="ext-link-overlay" class="modal-overlay">
         <div class="modal">
             <h3>插入外部/Release 资源</h3>
@@ -289,7 +288,6 @@
         
         let isSplitMode = false;
         const params = new URLSearchParams(location.search);
-        // 此处 edit 可能是完整路径 "posts/文件夹/文章.md"
         const editPath = params.get("edit") ? decodeURIComponent(params.get("edit")) : null;
 
         // --- 初始化 ---
@@ -298,17 +296,8 @@
                 statusText.innerText = `正在编辑: ${editPath}`;
                 try {
                     const fullText = await getPost(editPath);
-                    const lines = fullText.split('\n');
-                    
-                    // 解析内容：如果第一行是 # 标题，分离出来，但这里我们主要用 input 显示路径
-                    // 为了简化，我们直接把路径显示在 input 里，内容显示在 textarea
-                    // 如果文章自带了 # Title，我们可以保留在正文里，也可以提取
-                    
-                    // 策略：input 显示的是“文件路径/文件名(不含.md)”，正文是全文
-                    // 显示去掉 posts/ 的路径
                     titleInput.value = editPath.replace(/^posts\//, '').replace('.md', '');
                     contentArea.value = fullText;
-                    
                     updatePreview();
                 } catch(e) { alert("读取失败: " + e.message); }
             } else {
@@ -318,7 +307,7 @@
         }
         init();
 
-        // --- 分栏与渲染 (保持原样) ---
+        // --- 分栏与渲染 ---
         window.toggleSplitMode = () => {
             isSplitMode = !isSplitMode;
             if (isSplitMode) {
@@ -339,7 +328,6 @@
         });
 
         function updatePreview() {
-            // 简单渲染，不强行加 # 标题，所见即所得
             const rawMarkdown = contentArea.value;
             previewContent.innerHTML = marked.parse(rawMarkdown);
             
@@ -360,70 +348,34 @@
             previewPane.scrollTop = percentage * (previewPane.scrollHeight - previewPane.offsetHeight);
         });
 
-        // --- 图片上传 (基本保持原样，仅文件名处理) ---
-        const imgInput = document.getElementById("img-upload-input");
-        const imgModal = document.getElementById("img-modal-overlay");
-        const imgPreviewBox = document.getElementById("img-preview-box");
-        let selectedImgFile = null;
-
-        window.triggerFileSelect = () => {
-            if(!titleInput.value.trim() && !editPath) return alert("请先输入路径/标题，用于生成图片文件夹");
-            imgInput.click();
-        };
-
-        imgInput.addEventListener("change", () => {
-            if (!imgInput.files[0]) return;
-            selectedImgFile = imgInput.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
-            reader.readAsDataURL(selectedImgFile);
-            imgModal.style.display = "flex";
-            const savedToken = localStorage.getItem("github_token");
-            if(savedToken) document.getElementById("upload-token").value = savedToken;
-        });
-
-        window.closeImgModal = () => { imgModal.style.display = "none"; imgInput.value = ""; selectedImgFile = null; };
-
-        document.getElementById("btn-confirm-upload").onclick = async function() {
-            const token = document.getElementById("upload-token").value.trim();
-            if(!token) return alert("请输入Token");
-            localStorage.setItem("github_token", token);
-            this.innerText = "上传中..."; this.disabled = true;
-
-            try {
-                // 文件夹名基于输入框的最后一级
-                const inputVal = titleInput.value.trim();
-                const folderName = inputVal.split('/').pop() || "Untitled"; 
-                
-                const url = await uploadImage(selectedImgFile, folderName, token);
-                window.insertMD(`\n![${selectedImgFile.name}](${url})\n`, "");
-                if(isSplitMode) updatePreview();
-                closeImgModal();
-            } catch(e) {
-                alert("上传失败: " + e.message);
-            } finally {
-                this.innerText = "上传并插入"; this.disabled = false;
-            }
-        };
-
-        // --- 外部链接插入 (保持原样) ---
+        // --- 外部链接插入 (已修复缩进问题) ---
         const extModal = document.getElementById("ext-link-overlay");
         document.getElementById("openExtLinkBtn").onclick = () => {
             document.getElementById("ext-name").value = ""; document.getElementById("ext-url").value = "";
             document.getElementById("ext-note").value = ""; extModal.style.display = "flex";
         };
+        
         window.insertExtLink = () => {
             const name = document.getElementById("ext-name").value.trim();
             const url = document.getElementById("ext-url").value.trim();
             const note = document.getElementById("ext-note").value.trim();
             if (!name || !url) return alert("名称和链接不能为空");
             let noteHtml = note ? `<span class="file-note">${note}</span>` : "";
-            const fileCardHtml = `<div class="file-card"><span class="file-name"><i class="fa-solid fa-globe"></i> ${name}</span><div class="file-info">${noteHtml}<a class="file-download" href="javascript:void(0)" data-path="${url}" onclick="event.stopPropagation()"><i class="fa-solid fa-cloud-arrow-down"></i> 下载</a></div></div>`;
+            // 关键：无缩进模板字符串
+const fileCardHtml = `<div class="file-card">
+<span class="file-name"><i class="fa-solid fa-globe"></i> ${name}</span>
+<div class="file-info">
+${noteHtml}
+<a class="file-download" href="javascript:void(0)" data-path="${url}" onclick="event.stopPropagation()">
+<i class="fa-solid fa-cloud-arrow-down"></i> 下载
+</a>
+</div>
+</div>`;
             window.insertMD(`\n${fileCardHtml}\n`, "");
             extModal.style.display = "none";
         };
 
-        // --- 仓库文件列表 (保持原样) ---
+        // --- 仓库文件列表 (已修复缩进问题) ---
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("file-modal-overlay").style.display = "flex";
@@ -447,7 +399,15 @@
                 li.onclick = () => {
                     if(item.type === 'dir') loadFiles(item.path);
                     else {
-                        const fileCardHtml = `<div class="file-card"><span class="file-name"><i class="fa-solid fa-file-lines"></i> ${item.name}</span><div class="file-info"><a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-down"></i> 下载</a></div></div>`;
+                        // 关键：无缩进模板字符串
+const fileCardHtml = `<div class="file-card">
+<span class="file-name"><i class="fa-solid fa-file-lines"></i> ${item.name}</span>
+<div class="file-info">
+<a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()">
+<i class="fa-solid fa-arrow-down"></i> 下载
+</a>
+</div>
+</div>`;
                         window.insertMD(`\n${fileCardHtml}\n`, "");
                         document.getElementById("file-modal-overlay").style.display = 'none';
                     }
@@ -456,7 +416,51 @@
             });
         }
 
-        // --- 保存逻辑 (更新为支持路径) ---
+        // --- 图片上传 ---
+        const imgInput = document.getElementById("img-upload-input");
+        const imgModal = document.getElementById("img-modal-overlay");
+        const imgPreviewBox = document.getElementById("img-preview-box");
+        let selectedImgFile = null;
+
+        window.triggerFileSelect = () => {
+            if(!titleInput.value.trim() && !editPath) return alert("请先输入路径/标题");
+            imgInput.click();
+        };
+
+        imgInput.addEventListener("change", () => {
+            if (!imgInput.files[0]) return;
+            selectedImgFile = imgInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
+            reader.readAsDataURL(selectedImgFile);
+            imgModal.style.display = "flex";
+            const savedToken = localStorage.getItem("github_token");
+            if(savedToken) document.getElementById("upload-token").value = savedToken;
+        });
+
+        window.closeImgModal = () => { imgModal.style.display = "none"; imgInput.value = ""; selectedImgFile = null; };
+
+        document.getElementById("btn-confirm-upload").onclick = async function() {
+            const token = document.getElementById("upload-token").value.trim();
+            if(!token) return alert("请输入Token");
+            localStorage.setItem("github_token", token);
+            this.innerText = "上传中..."; this.disabled = true;
+
+            try {
+                const inputVal = titleInput.value.trim();
+                const folderName = inputVal.split('/').pop() || "Untitled"; 
+                const url = await uploadImage(selectedImgFile, folderName, token);
+                window.insertMD(`\n![${selectedImgFile.name}](${url})\n`, "");
+                if(isSplitMode) updatePreview();
+                closeImgModal();
+            } catch(e) {
+                alert("上传失败: " + e.message);
+            } finally {
+                this.innerText = "上传并插入"; this.disabled = false;
+            }
+        };
+
+        // --- 保存 ---
         document.getElementById("saveBtn").onclick = async function() {
             let inputVal = titleInput.value.trim();
             const body = contentArea.value;
@@ -470,27 +474,13 @@
             this.disabled = true; this.innerHTML = "保存中...";
             
             try {
-                // 构造完整路径
-                // 如果是新建，用户输入 "笔记/Vue/01"，我们需要补上 "posts/" 和 ".md"
-                // 如果是编辑，inputVal 已经是 "笔记/Vue/01" (我们去掉了 posts/ 前缀显示)
-                
                 let fullPath = inputVal;
-                
-                // 确保以 posts/ 开头
-                if (!fullPath.startsWith('posts/')) {
-                    fullPath = 'posts/' + fullPath;
-                }
-                // 确保以 .md 结尾
-                if (!fullPath.endsWith('.md')) {
-                    fullPath = fullPath + '.md';
-                }
+                if (!fullPath.startsWith('posts/')) fullPath = 'posts/' + fullPath;
+                if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md';
 
                 await savePost(fullPath, body, token);
                 alert("保存成功!");
-                // 刷新主页
-                if (window.opener && !window.opener.closed) {
-                    window.opener.location.reload();
-                }
+                if (window.opener && !window.opener.closed) window.opener.location.reload();
                 window.location.href = `index.html?f=${encodeURIComponent(fullPath)}`;
             } catch(e) {
                 alert("保存失败: " + e.message);
