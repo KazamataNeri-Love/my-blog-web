@@ -33,6 +33,7 @@
 
         input, button, select, textarea { font-family: inherit; }
 
+        /* --- 侧边栏 --- */
         .sidebar {
             width: 300px;
             background-color: var(--bg-sidebar);
@@ -55,12 +56,6 @@
 
         .nav-list { flex: 1; overflow-y: auto; padding: 10px 0; list-style: none; }
         
-        .nav-group-title {
-            padding: 15px 20px 5px; font-size: 12px; color: var(--text-sub);
-            font-weight: bold; text-transform: uppercase; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        
         .nav-item {
             padding: 8px 20px 8px 30px; cursor: pointer; display: flex;
             align-items: center; text-decoration: none; color: var(--text-sub);
@@ -73,23 +68,60 @@
         }
         .nav-item i { margin-right: 10px; font-size: 14px; width: 16px; text-align: center; }
 
-        /* --- 🟡 新增/修改：多级目录缩进与折叠样式 (不破坏原UI) --- */
+        /* --- 多级目录与排序栏样式 --- */
         .nested-ul { display: none; padding-left: 0; list-style: none; background: rgba(0,0,0,0.1); }
         .folder-open > .nested-ul { display: block; }
         .folder-icon { transition: transform 0.2s; }
         .folder-open > .nav-item > .folder-icon { transform: rotate(90deg); color: var(--accent-color); }
-        /* 每一级缩进增加 */
+        
+        /* 缩进 */
         .nav-item.level-1 { padding-left: 30px; }
         .nav-item.level-2 { padding-left: 45px; }
         .nav-item.level-3 { padding-left: 60px; }
         .nav-item.level-4 { padding-left: 75px; }
-        /* ---------------------------------------------------- */
+
+        /* 排序/分组标题栏 */
+        .nav-group-title {
+            padding: 15px 20px 5px; 
+            font-size: 12px; 
+            color: var(--text-sub);
+            font-weight: bold; 
+            text-transform: uppercase; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: relative;
+        }
+        
+        .sort-btn {
+            cursor: pointer; padding: 4px 6px; border-radius: 4px; color: var(--text-sub); transition: 0.2s;
+        }
+        .sort-btn:hover { background-color: #383838; color: var(--text-main); }
+        
+        .sort-popup {
+            position: absolute; right: 10px; top: 35px;
+            background-color: #2d2d2d; border: 1px solid #444; border-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000;
+            min-width: 140px; display: none; overflow: hidden;
+        }
+        .sort-popup.show { display: block; }
+
+        .sort-option {
+            padding: 8px 12px; font-size: 12px; color: #ccc; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .sort-option:hover { background-color: #383838; color: #fff; }
+        .sort-option.active { color: var(--accent-color); font-weight: bold; }
+        .sort-option .check-icon { opacity: 0; font-size: 12px; }
+        .sort-option.active .check-icon { opacity: 1; }
+        /* ----------------------- */
 
         .sidebar-footer {
             padding: 15px; border-top: 1px solid var(--border-color);
             display: flex; justify-content: space-between; color: var(--text-sub); font-size: 12px;
         }
 
+        /* --- 主内容区 --- */
         .main-content {
             flex: 1; overflow-y: auto; padding: 40px 60px;
             background-image: linear-gradient(to bottom, #1e1e1e 0%, var(--bg-main) 300px);
@@ -210,7 +242,8 @@
         const uiFile = document.getElementById("article-file");
         const btnEdit = document.getElementById("btn-edit");
 
-        let allFiles = []; // 存储所有文件节点，用于搜索
+        let allFiles = []; 
+        let currentSortMode = 'date'; // 默认按时间倒序
 
         // --- 初始化 ---
         async function init() {
@@ -230,14 +263,9 @@
         // --- 加载侧边栏数据 (Tree) ---
         async function loadSidebar() {
             try {
-                // 使用 fetchFileTree 获取 Git Tree
                 allFiles = await fetchFileTree();
-                
-                // 过滤只显示 .md 文件用于搜索，但构建树时使用所有路径
-                // 构建树结构
                 const tree = buildTree(allFiles);
                 renderSidebarTree(tree);
-
             } catch (e) {
                 console.error(e);
                 sidebarList.innerHTML = `<li style="color:#ff6b6b; padding:15px">⚠️ 加载失败: ${e.message}</li>`;
@@ -248,18 +276,16 @@
         function buildTree(files) {
             const root = {};
             files.forEach(file => {
-                if (file.type !== 'blob' && file.type !== 'tree') return; // 只处理文件和目录
-                if (!file.path.endsWith('.md') && file.type === 'blob') return; // 隐藏非md文件
+                if (file.type !== 'blob' && file.type !== 'tree') return; 
+                if (!file.path.endsWith('.md') && file.type === 'blob') return; 
 
-                // path: posts/A/B/c.md -> 去掉 posts/
                 const parts = file.path.replace(/^posts\//, '').split('/');
-                
                 let current = root;
                 parts.forEach((part, index) => {
                     if (!current[part]) {
                         current[part] = {
                             name: part,
-                            path: (index === parts.length - 1 && file.type === 'blob') ? file.path : null, // 只有文件才有path
+                            path: (index === parts.length - 1 && file.type === 'blob') ? file.path : null,
                             children: {}
                         };
                     }
@@ -269,11 +295,11 @@
             return root;
         }
 
-        // --- 核心：递归渲染树 ---
+        // --- 核心：递归渲染树 (带功能区) ---
         function renderSidebarTree(treeData) {
             sidebarList.innerHTML = "";
 
-            // 1. 固定头部：新建按钮
+            // 1. 固定头部
             const newPostLi = document.createElement("li");
             newPostLi.innerHTML = `
                 <a href="editor.html" target="_blank" class="nav-item" style="color: var(--text-sub);">
@@ -283,7 +309,6 @@
             `;
             sidebarList.appendChild(newPostLi);
 
-            // 2. 固定头部：首页
             const homeLi = document.createElement("li");
             homeLi.innerHTML = `
                 <div class="nav-item" id="nav-home" onclick="showHome()">
@@ -293,15 +318,35 @@
             `;
             sidebarList.appendChild(homeLi);
 
+            // 分隔
             const separator = document.createElement("li");
             separator.style.borderBottom = "1px solid var(--border-color)";
             separator.style.margin = "8px 0";
             sidebarList.appendChild(separator);
 
-            // 3. 递归渲染目录
-            // 先排序：文件夹在前，文件在后
+            // 2. 贴文列表标题 + 排序按钮
+            const groupTitle = document.createElement("li");
+            groupTitle.className = "nav-group-title";
+            groupTitle.innerHTML = `
+                <span><i class="fa-regular fa-folder-open"></i> 贴文列表</span>
+                
+                <div class="sort-btn" onclick="event.stopPropagation(); toggleSortMenu()" title="排序方式">
+                    <i class="fa-solid fa-arrow-down-short-wide"></i>
+                </div>
+
+                <div id="sort-menu" class="sort-popup">
+                    <div class="sort-option ${currentSortMode === 'date' ? 'active' : ''}" onclick="applySort('date')">
+                        <span>📅 按时间</span> <i class="fa-solid fa-check check-icon"></i>
+                    </div>
+                    <div class="sort-option ${currentSortMode === 'title' ? 'active' : ''}" onclick="applySort('title')">
+                        <span>Aa 按标题</span> <i class="fa-solid fa-check check-icon"></i>
+                    </div>
+                </div>
+            `;
+            sidebarList.appendChild(groupTitle);
+
+            // 3. 递归目录
             const container = document.createDocumentFragment();
-            // 初始层级 level = 1
             createTreeNodes(treeData, container, 1);
             sidebarList.appendChild(container);
 
@@ -309,16 +354,26 @@
         }
 
         function createTreeNodes(nodes, parentEl, level) {
-            // 将对象转为数组以便排序
+            // 排序逻辑
             const keys = Object.keys(nodes).sort((a, b) => {
                 const nodeA = nodes[a];
                 const nodeB = nodes[b];
                 const isFolderA = Object.keys(nodeA.children).length > 0 && !nodeA.path;
                 const isFolderB = Object.keys(nodeB.children).length > 0 && !nodeB.path;
                 
+                // 文件夹始终置顶
                 if (isFolderA && !isFolderB) return -1;
                 if (!isFolderA && isFolderB) return 1;
-                return a.localeCompare(b, 'zh-CN');
+
+                if (currentSortMode === 'date') {
+                    // 按日期倒序 (假设文件名含日期)
+                    return b.localeCompare(a, 'zh-CN');
+                } else {
+                    // 按标题正序 (忽略日期前缀)
+                    const nameA = a.replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+                    const nameB = b.replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
+                    return nameA.localeCompare(nameB, 'zh-CN');
+                }
             });
 
             keys.forEach(key => {
@@ -326,8 +381,6 @@
                 const isFolder = Object.keys(node.children).length > 0 && !node.path;
                 
                 const li = document.createElement("li");
-                
-                // 计算显示名称
                 let displayName = node.name.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                 
                 if (isFolder) {
@@ -338,13 +391,11 @@
                             <span>${displayName}</span>
                         </div>
                     `;
-                    // 子容器
                     const ul = document.createElement("ul");
                     ul.className = "nested-ul";
                     createTreeNodes(node.children, ul, level + 1);
                     li.appendChild(ul);
                 } else {
-                    // 文件
                     li.innerHTML = `
                         <div class="nav-item file-item level-${level}" data-path="${node.path}" onclick="handlePostClick('${node.path}')">
                             <i class="fa-regular fa-file-lines"></i>
@@ -356,7 +407,31 @@
             });
         }
 
-        // --- 全局交互函数 ---
+        // --- 排序与交互 ---
+        window.toggleSortMenu = () => {
+            const menu = document.getElementById("sort-menu");
+            if(menu) {
+                menu.classList.toggle("show");
+                if (menu.classList.contains("show")) {
+                    setTimeout(() => document.addEventListener('click', closeSortMenuOutside), 0);
+                }
+            }
+        };
+
+        function closeSortMenuOutside(e) {
+            const menu = document.getElementById("sort-menu");
+            if (menu && !menu.contains(e.target)) {
+                menu.classList.remove("show");
+                document.removeEventListener('click', closeSortMenuOutside);
+            }
+        }
+
+        window.applySort = (mode) => {
+            currentSortMode = mode;
+            const tree = buildTree(allFiles);
+            renderSidebarTree(tree);
+        };
+
         window.toggleFolder = (el) => {
             el.parentElement.classList.toggle("folder-open");
         };
@@ -400,13 +475,11 @@
                 }
 
                 articleBody.innerHTML = marked.parse(renderText);
-                uiFile.innerText = path; // 显示完整路径
-                
-                // 编辑按钮链接到 editor.html，带上完整路径
+                uiFile.innerText = path;
                 btnEdit.href = `editor.html?edit=${encodeURIComponent(path)}`;
                 headerArea.style.display = "block";
 
-                // 绑定下载事件
+                // 下载按钮处理
                 articleBody.querySelectorAll('.file-download').forEach(btn => {
                     btn.onclick = (e) => {
                         e.preventDefault();
@@ -433,12 +506,11 @@
                 const homeBtn = document.getElementById("nav-home");
                 if(homeBtn) homeBtn.classList.add("active");
             } else {
-                // 找到对应的文件节点
                 const activeItem = document.querySelector(`.file-item[data-path="${decodeURIComponent(currentPath)}"]`);
                 if(activeItem) {
                     activeItem.classList.add("active");
-                    // 自动展开父级目录
-                    let parent = activeItem.parentElement.parentElement; // ul.nested-ul
+                    // 自动展开
+                    let parent = activeItem.parentElement.parentElement;
                     while (parent && parent.classList.contains('nested-ul')) {
                         parent.parentElement.classList.add('folder-open');
                         parent = parent.parentElement.parentElement;
@@ -447,18 +519,14 @@
             }
         }
 
-        // --- 搜索 (保留扁平搜索) ---
+        // --- 搜索 ---
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
-            
-            // 如果搜索为空，重新渲染树
             if (!keyword) {
                 const tree = buildTree(allFiles);
                 renderSidebarTree(tree);
                 return;
             }
-
-            // 如果有搜索词，渲染扁平列表
             sidebarList.innerHTML = "";
             const matched = allFiles.filter(f => 
                 f.type === 'blob' && f.path.endsWith('.md') && 
