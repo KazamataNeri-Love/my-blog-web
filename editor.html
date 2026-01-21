@@ -91,7 +91,7 @@
         .markdown-body th, .markdown-body td { border: 1px solid #30363d; padding: 6px 13px; }
         .markdown-body img { max-width: 100%; border-radius: 4px; background: #fff; display: block; margin: 10px 0; }
 
-        /* --- 🔴 关键修复：文件卡片样式 (与 Index 保持一致) --- */
+        /* --- 文件卡片样式 --- */
         .file-card {
             background: #21262d; 
             border: 1px solid #30363d; 
@@ -108,6 +108,18 @@
             display: flex; 
             align-items: center; 
             gap: 8px; 
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .file-note {
+            font-size: 12px;
+            color: #8b949e;
+            background: #30363d;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
         .file-download {
             color: #e0e0e0; 
@@ -154,6 +166,7 @@
         #img-preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
         
         .modal-input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #d0d7de; border-radius: 4px; box-sizing: border-box; }
+        .modal-label { display:block; font-size:12px; font-weight:bold; margin-bottom:5px; color:#555; }
         .modal-footer { text-align: right; margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px; }
         
         /* 列表弹窗 */
@@ -193,8 +206,9 @@
                 <button class="tool-btn" onclick="insertMD('> ', '')"><i class="fa-solid fa-quote-right"></i></button>
                 <button class="tool-btn" onclick="insertMD('\n---\n', '')"><i class="fa-solid fa-ruler-horizontal"></i></button>
                 <div class="tool-sep"></div>
-                <button class="tool-btn" onclick="triggerFileSelect()"><i class="fa-regular fa-image"></i> 图片</button>
-                <button class="tool-btn" id="openFileBtn"><i class="fa-solid fa-paperclip"></i> 文件</button>
+                <button class="tool-btn" onclick="triggerFileSelect()" title="上传图片"><i class="fa-regular fa-image"></i> 图片</button>
+                <button class="tool-btn" id="openFileBtn" title="插入仓库内文件"><i class="fa-solid fa-paperclip"></i> 文件</button>
+                <button class="tool-btn" id="openExtLinkBtn" title="插入GitHub Release或网盘链接"><i class="fa-solid fa-link"></i> 外部/网盘</button>
                 
                 <!-- 隐藏的 input -->
                 <input type="file" id="img-upload-input" accept="image/*" style="display:none">
@@ -226,7 +240,7 @@
         <div class="modal">
             <h3>插入图片</h3>
             <div id="img-preview-box"><span style="color:#999">预览区</span></div>
-            <label style="font-size:12px">Github Token:</label>
+            <label class="modal-label">Github Token:</label>
             <input type="password" id="upload-token" class="modal-input" placeholder="输入 Token">
             <div class="modal-footer">
                 <button class="tool-btn" onclick="closeImgModal()">取消</button>
@@ -238,11 +252,32 @@
     <!-- 文件选择模态框 -->
     <div id="file-modal-overlay" class="modal-overlay">
         <div class="modal">
-            <h3>选择文件</h3>
+            <h3>选择仓库文件</h3>
             <div id="current-path" style="font-size:12px;color:#666;margin-bottom:5px">/</div>
             <ul id="file-list">加载中...</ul>
             <div class="modal-footer">
                 <button class="tool-btn" onclick="document.getElementById('file-modal-overlay').style.display='none'">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 外部链接模态框 (新增) -->
+    <div id="ext-link-overlay" class="modal-overlay">
+        <div class="modal">
+            <h3>插入外部/Release 资源</h3>
+            
+            <label class="modal-label">资源显示名称:</label>
+            <input type="text" id="ext-name" class="modal-input" placeholder="例如: 游戏完整版 v1.0.zip">
+            
+            <label class="modal-label">下载链接 (URL):</label>
+            <input type="text" id="ext-url" class="modal-input" placeholder="https://github.com/.../releases/.../file.zip">
+            
+            <label class="modal-label">提取码/备注 (可选):</label>
+            <input type="text" id="ext-note" class="modal-input" placeholder="例如: 提取码 1234 或 解压密码: none">
+
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="document.getElementById('ext-link-overlay').style.display='none'">取消</button>
+                <button class="btn-primary" onclick="insertExtLink()">确认插入</button>
             </div>
         </div>
     </div>
@@ -255,7 +290,6 @@
         const contentArea = document.getElementById("content");
         const previewPane = document.getElementById("preview-pane");
         const previewContent = document.getElementById("preview-content");
-        const editorPane = document.getElementById("editor-pane");
         const btnSplit = document.getElementById("btn-toggle-split");
         const statusText = document.getElementById("status-text");
         const wordCount = document.getElementById("word-count");
@@ -284,9 +318,7 @@
             } else {
                 statusText.innerText = "新建模式";
             }
-            
-            // 默认开启分栏模式 (为了满足你的需求)
-            toggleSplitMode();
+            toggleSplitMode(); // 默认开启
         }
         init();
 
@@ -294,47 +326,34 @@
         
         window.toggleSplitMode = () => {
             isSplitMode = !isSplitMode;
-            
             if (isSplitMode) {
-                // 开启分栏
                 previewPane.style.display = "block";
                 btnSplit.classList.add("active");
                 btnSplit.innerHTML = `<i class="fa-solid fa-table-columns"></i> 关闭分栏`;
-                updatePreview(); // 立即渲染
+                updatePreview();
             } else {
-                // 关闭分栏 (纯编辑模式)
                 previewPane.style.display = "none";
                 btnSplit.classList.remove("active");
                 btnSplit.innerHTML = `<i class="fa-solid fa-columns"></i> 分栏预览`;
             }
         };
 
-        // 监听输入，实时更新预览
         contentArea.addEventListener('input', () => {
             wordCount.innerText = `${contentArea.value.length} 字`;
-            if (isSplitMode) {
-                updatePreview();
-            }
+            if (isSplitMode) updatePreview();
         });
 
-        // 渲染 Markdown
         function updatePreview() {
             const rawMarkdown = contentArea.value;
             const title = titleInput.value.trim();
-            // 模拟加上标题的效果
             const previewMd = `# ${title || '无标题'}\n\n${rawMarkdown}`;
-            
             previewContent.innerHTML = marked.parse(previewMd);
             
-            // 图片错误处理
             previewContent.querySelectorAll('img').forEach(img => {
-                img.onerror = () => { 
-                    img.style.border = "1px solid red"; 
-                    img.alt += " (加载中或失败...)"; 
-                };
+                img.onerror = () => { img.style.border = "1px solid red"; img.alt += " (失败)"; };
             });
 
-            // 🔴 新增：让预览区的下载按钮也能点击 (调用 downloadFile)
+            // 绑定预览区下载点击事件
             previewContent.querySelectorAll('.file-download').forEach(btn => {
                 btn.onclick = (e) => {
                     e.preventDefault();
@@ -344,23 +363,21 @@
             });
         }
 
-        // 滚动同步 (简单的比例同步)
+        // 滚动同步
         contentArea.addEventListener('scroll', () => {
             if (!isSplitMode) return;
             const percentage = contentArea.scrollTop / (contentArea.scrollHeight - contentArea.offsetHeight);
             previewPane.scrollTop = percentage * (previewPane.scrollHeight - previewPane.offsetHeight);
         });
 
-        // --- 图片上传 (带预览) ---
+        // --- 功能1：图片上传 ---
         const imgInput = document.getElementById("img-upload-input");
         const imgModal = document.getElementById("img-modal-overlay");
         const imgPreviewBox = document.getElementById("img-preview-box");
         let selectedImgFile = null;
 
         window.triggerFileSelect = () => {
-            if(!titleInput.value.trim() && !editFilename) {
-                return alert("请先输入标题，用于生成图片文件夹");
-            }
+            if(!titleInput.value.trim() && !editFilename) return alert("请先输入标题，用于生成图片文件夹");
             imgInput.click();
         };
 
@@ -370,7 +387,6 @@
             const reader = new FileReader();
             reader.onload = (e) => imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
             reader.readAsDataURL(selectedImgFile);
-            
             imgModal.style.display = "flex";
             const savedToken = localStorage.getItem("github_token");
             if(savedToken) document.getElementById("upload-token").value = savedToken;
@@ -391,7 +407,6 @@
             this.disabled = true;
 
             try {
-                // 生成日期文件夹名
                 let folderName = "";
                 if (editFilename) {
                     folderName = editFilename.replace(".md", "");
@@ -399,15 +414,9 @@
                     const now = new Date();
                     folderName = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${titleInput.value.trim()}`;
                 }
-
                 const url = await uploadImage(selectedImgFile, folderName, token);
-                
-                // 插入 Markdown
                 window.insertMD(`\n![${selectedImgFile.name}](${url})\n`, "");
-                
-                // **关键：上传成功后立即刷新预览，这样图片就会在右边显示出来**
                 if(isSplitMode) updatePreview();
-
                 closeImgModal();
                 statusText.innerText = "✅ 图片上传成功";
             } catch(e) {
@@ -418,53 +427,41 @@
             }
         };
 
-        // --- 保存逻辑 ---
-        document.getElementById("saveBtn").onclick = async function() {
-            const title = titleInput.value.trim();
-            const body = contentArea.value;
-            if(!title) return alert("请输入标题");
+        // --- 功能2：插入外部/Release 链接 (新增) ---
+        const extModal = document.getElementById("ext-link-overlay");
+        document.getElementById("openExtLinkBtn").onclick = () => {
+            document.getElementById("ext-name").value = "";
+            document.getElementById("ext-url").value = "";
+            document.getElementById("ext-note").value = "";
+            extModal.style.display = "flex";
+        };
 
-            let token = localStorage.getItem("github_token");
-            if (!token) token = prompt("请输入 Token:");
-            if (!token) return;
-            localStorage.setItem("github_token", token);
+        window.insertExtLink = () => {
+            const name = document.getElementById("ext-name").value.trim();
+            const url = document.getElementById("ext-url").value.trim();
+            const note = document.getElementById("ext-note").value.trim();
 
-            this.disabled = true;
-            this.innerHTML = "保存中...";
+            if (!name || !url) return alert("名称和链接不能为空");
+
+            // 构造 HTML 卡片 (增加地球图标和可选的备注)
+            let noteHtml = note ? `<span class="file-note">${note}</span>` : "";
             
-            try {
-                // 生成文件名
-                let filename = editFilename;
-                if (!filename) {
-                    const now = new Date();
-                    filename = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${title}.md`;
-                }
-                
-                const content = `# ${title}\n\n${body}`;
-                await savePost(filename, content, token);
-                alert("保存成功!");
-                window.location.href = "index.html";
-            } catch(e) {
-                alert("保存失败: " + e.message);
-                this.disabled = false;
-                this.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> 保存`;
-            }
+            const fileCardHtml = `
+<div class="file-card">
+    <span class="file-name"><i class="fa-solid fa-globe"></i> ${name}</span>
+    <div class="file-info">
+        ${noteHtml}
+        <a class="file-download" href="javascript:void(0)" data-path="${url}" onclick="event.stopPropagation()">
+            <i class="fa-solid fa-cloud-arrow-down"></i> 下载
+        </a>
+    </div>
+</div>`;
+
+            window.insertMD(`\n${fileCardHtml}\n`, "");
+            extModal.style.display = "none";
         };
 
-        // --- 工具函数 ---
-        window.insertMD = (prefix, suffix) => {
-            const start = contentArea.selectionStart;
-            const end = contentArea.selectionEnd;
-            const text = contentArea.value;
-            contentArea.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
-            contentArea.focus();
-            contentArea.selectionStart = start + prefix.length;
-            contentArea.selectionEnd = end + prefix.length;
-            if(isSplitMode) updatePreview();
-        };
-        window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
-        
-        // 文件选择器
+        // --- 功能3：插入仓库文件 (旧功能保留) ---
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("file-modal-overlay").style.display = "flex";
@@ -494,13 +491,15 @@
                 li.onclick = () => {
                     if(item.type === 'dir') loadFiles(item.path);
                     else {
-                        // 🔴 关键修复：插入 HTML 卡片结构
+                        // 插入 HTML 卡片 (仓库文件)
                         const fileCardHtml = `
 <div class="file-card">
     <span class="file-name"><i class="fa-solid fa-file-lines"></i> ${item.name}</span>
-    <a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()">
-        <i class="fa-solid fa-arrow-down"></i> 下载
-    </a>
+    <div class="file-info">
+        <a class="file-download" href="javascript:void(0)" data-path="${item.path}" onclick="event.stopPropagation()">
+            <i class="fa-solid fa-arrow-down"></i> 下载
+        </a>
+    </div>
 </div>`;
                         window.insertMD(`\n${fileCardHtml}\n`, "");
                         document.getElementById("file-modal-overlay").style.display = 'none';
@@ -509,8 +508,50 @@
                 listEl.appendChild(li);
             });
         }
+
+        // --- 保存与工具 ---
+        document.getElementById("saveBtn").onclick = async function() {
+            const title = titleInput.value.trim();
+            const body = contentArea.value;
+            if(!title) return alert("请输入标题");
+
+            let token = localStorage.getItem("github_token");
+            if (!token) token = prompt("请输入 Token:");
+            if (!token) return;
+            localStorage.setItem("github_token", token);
+
+            this.disabled = true;
+            this.innerHTML = "保存中...";
+            
+            try {
+                let filename = editFilename;
+                if (!filename) {
+                    const now = new Date();
+                    filename = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${title}.md`;
+                }
+                const content = `# ${title}\n\n${body}`;
+                await savePost(filename, content, token);
+                alert("保存成功!");
+                window.location.href = "index.html";
+            } catch(e) {
+                alert("保存失败: " + e.message);
+                this.disabled = false;
+                this.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> 保存`;
+            }
+        };
+
+        window.insertMD = (prefix, suffix) => {
+            const start = contentArea.selectionStart;
+            const end = contentArea.selectionEnd;
+            const text = contentArea.value;
+            contentArea.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
+            contentArea.focus();
+            contentArea.selectionStart = start + prefix.length;
+            contentArea.selectionEnd = end + prefix.length;
+            if(isSplitMode) updatePreview();
+        };
+        window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
         
-        // Ctrl+S 保存
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
