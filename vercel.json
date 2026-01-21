@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/dl/test-file",
+      "destination": "https://github.com/KazamataNeri-Love/my-blog-web/archive/refs/heads/main.zip",
+      "permanent": false
+    }
+  ]
+}
