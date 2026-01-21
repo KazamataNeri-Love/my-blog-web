@@ -1,36 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <title>编辑器</title>
+    <!-- 1. 引入 Marked 解析器 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 引入 FontAwesome (用于图标) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { max-width: 900px; margin: 20px auto; padding: 20px; font-family: sans-serif; background: #fff; }
+        /* --- 基础样式 (保持编辑器原本的明亮风格，但换用等宽字体) --- */
+        body { 
+            max-width: 900px; margin: 20px auto; padding: 20px; 
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            background: #fff; color: #333;
+        }
+        
+        a { text-decoration: none; }
+        
         .header-area { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; }
-        input[type="text"] { width: 100%; padding: 12px; font-size: 18px; border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #444; font-size: 14px;}
+        
+        input[type="text"] { 
+            width: 100%; padding: 10px; font-size: 16px; 
+            border: 1px solid #d0d7de; border-radius: 6px; box-sizing: border-box; 
+            font-family: inherit;
+        }
         input:focus { outline: 2px solid #0969da; border-color: transparent; }
-        .toolbar { background: #f6f8fa; padding: 8px; border: 1px solid #d0d7de; border-bottom: none; border-radius: 6px 6px 0 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;}
-        .tool-btn { background: white; border: 1px solid #d0d7de; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; color: #24292f; }
+
+        /* --- 标签页切换栏 --- */
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #d0d7de;
+            margin-bottom: 0; /* 紧贴下方内容 */
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-bottom: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #57606a;
+            border-radius: 6px 6px 0 0;
+            font-family: inherit;
+            margin-bottom: -1px; /* 盖住底边框 */
+        }
+        .tab-btn:hover { color: #0969da; }
+        .tab-btn.active {
+            background: #fff;
+            border-color: #d0d7de;
+            border-bottom-color: #fff; /* 遮挡底线，形成连通效果 */
+            color: #0969da;
+        }
+
+        /* --- 编辑区域容器 --- */
+        #editor-view { display: block; }
+        
+        .toolbar { 
+            background: #f6f8fa; padding: 8px; 
+            border: 1px solid #d0d7de; border-top: none; /* 上方由 Tab 处理 */
+            border-bottom: none; 
+            display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+        }
+        .tool-btn { 
+            background: white; border: 1px solid #d0d7de; padding: 5px 10px; 
+            border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; 
+            color: #24292f; font-family: inherit; display: flex; align-items: center; gap: 5px;
+        }
         .tool-btn:hover { background: #f3f4f6; border-color: #8b949e; }
         .tool-sep { width: 1px; height: 20px; background: #d0d7de; margin: 0 5px; }
-        textarea { width: 100%; height: 500px; padding: 15px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 15px; line-height: 1.6; border: 1px solid #d0d7de; border-radius: 0 0 6px 6px; box-sizing: border-box; resize: vertical; outline: none; }
+        
+        textarea { 
+            width: 100%; height: 500px; padding: 15px; 
+            font-family: inherit; font-size: 14px; line-height: 1.6; 
+            border: 1px solid #d0d7de; border-radius: 0 0 6px 6px; 
+            box-sizing: border-box; resize: vertical; outline: none; 
+        }
         textarea:focus { border-color: #0969da; }
+
+        /* --- 预览区域容器 (模拟 index.html 的深色模式) --- */
+        #preview-view { 
+            display: none; 
+            border: 1px solid #d0d7de; /* 外框保持浅色，内部深色 */
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            min-height: 500px;
+            padding: 40px;
+            background: #191919; /* 对应 var(--bg-main) */
+        }
+
+        /* 预览内容的深色样式 (从 index.html 移植) */
+        .markdown-body { line-height: 1.8; color: #d4d4d4; font-size: 14px; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { 
+            color: #fff; margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; 
+        }
+        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid #333; padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid #333; padding-bottom: 0.3em; }
+        .markdown-body p { margin-bottom: 16px; }
+        .markdown-body a { color: #3794ff; text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body blockquote {
+            padding: 0 1em; color: #999; border-left: 0.25em solid #3794ff;
+            margin: 0 0 16px 0; background: #222; padding: 10px 15px; border-radius: 0 4px 4px 0;
+        }
+        .markdown-body code {
+            padding: 0.2em 0.4em; margin: 0; font-size: 85%; background-color: rgba(110,118,129,0.4);
+            border-radius: 6px; font-family: inherit;
+        }
+        .markdown-body pre {
+            padding: 16px; overflow: auto; font-size: 85%; line-height: 1.45;
+            background-color: #161b22; border-radius: 6px; border: 1px solid #30363d;
+        }
+        .markdown-body pre code { background-color: transparent; padding: 0; }
+        .markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+        .markdown-body table th, .markdown-body table td { padding: 6px 13px; border: 1px solid #30363d; }
+        .markdown-body table th { font-weight: 600; background-color: #161b22; }
+        .markdown-body table tr { background-color: #191919; }
+        .markdown-body table tr:nth-child(2n) { background-color: #161b22; }
+        .markdown-body img { max-width: 100%; background-color: #fff; border-radius: 4px; }
+
+        /* --- 底部与模态框 --- */
         .footer { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .status { color: #666; font-size: 14px; }
-        .btn-save { background: #2da44e; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .status { color: #666; font-size: 13px; }
+        .btn-save { 
+            background: #2da44e; color: white; border: none; padding: 8px 20px; 
+            border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit;
+        }
         .btn-save:hover { background: #2c974b; }
-        .back-link { text-decoration: none; color: #0969da; }
+        .btn-save:disabled { background: #94d3a2; cursor: not-allowed; }
+        
+        .back-link { color: #0969da; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;}
+        
+        /* 文件弹窗样式 */
         #modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); z-index: 999; }
         #modal { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 450px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
         #file-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #eee; margin-top: 10px; border-radius: 4px; }
-        #file-list li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; font-size: 14px; }
+        #file-list li { padding: 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; font-size: 13px; }
         #file-list li:hover { background: #f6f8fa; }
-        .icon { margin-right: 8px; font-size: 16px; }
+        .icon { margin-right: 8px; font-size: 14px; }
     </style>
 </head>
 <body>
     <div style="margin-bottom:15px">
-        <a href="index.html" class="back-link">← 返回列表</a>
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> 返回列表</a>
     </div>
 
     <div class="header-area">
@@ -38,32 +152,54 @@
         <input type="text" id="post-title" placeholder="请输入标题 (建议使用中文)...">
     </div>
 
-    <div class="toolbar">
-        <button class="tool-btn" onclick="insertMD('**', '**')">B 加粗</button>
-        <button class="tool-btn" onclick="insertMD('*', '*')">I 斜体</button>
-        <div class="tool-sep"></div>
-        <button class="tool-btn" onclick="insertMD('# ', '')">H1</button>
-        <button class="tool-btn" onclick="insertMD('## ', '')">H2</button>
-        <div class="tool-sep"></div>
-        <button class="tool-btn" onclick="insertTable()">📅 表格</button>
-        <button class="tool-btn" onclick="insertMD('> ', '')">❝ 引用</button>
-        <button class="tool-btn" onclick="insertMD('\n---\n', '')">📏 分割线</button>
-        <div class="tool-sep"></div>
-        
-        <button class="tool-btn" onclick="triggerImgUpload()">🖼️ 插入图片</button>
-        <input type="file" id="img-upload" accept="image/*" style="display:none">
-
-        <button class="tool-btn" id="openFileBtn" style="margin-left:auto; background:#f0f6fc; color:#0969da">📎 插入文件</button>
+    <!-- 2. 新增：标签切换按钮 -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('edit')" id="tab-edit">
+            <i class="fa-solid fa-pen-to-square"></i> 撰写
+        </button>
+        <button class="tab-btn" onclick="switchTab('preview')" id="tab-preview">
+            <i class="fa-solid fa-eye"></i> 预览
+        </button>
     </div>
 
-    <textarea id="content" placeholder="在此开始撰写正文..."></textarea>
+    <!-- 编辑视图 (Toolbar + Textarea) -->
+    <div id="editor-view">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="insertMD('**', '**')"><b>B</b> 加粗</button>
+            <button class="tool-btn" onclick="insertMD('*', '*')"><i>I</i> 斜体</button>
+            <div class="tool-sep"></div>
+            <button class="tool-btn" onclick="insertMD('# ', '')">H1</button>
+            <button class="tool-btn" onclick="insertMD('## ', '')">H2</button>
+            <div class="tool-sep"></div>
+            <button class="tool-btn" onclick="insertTable()"><i class="fa-solid fa-table"></i> 表格</button>
+            <button class="tool-btn" onclick="insertMD('> ', '')"><i class="fa-solid fa-quote-right"></i> 引用</button>
+            <button class="tool-btn" onclick="insertMD('\n---\n', '')"><i class="fa-solid fa-ruler-horizontal"></i> 分割线</button>
+            <div class="tool-sep"></div>
+            
+            <button class="tool-btn" onclick="triggerImgUpload()"><i class="fa-regular fa-image"></i> 图片</button>
+            <input type="file" id="img-upload" accept="image/*" style="display:none">
+
+            <button class="tool-btn" id="openFileBtn" style="margin-left:auto; background:#f0f6fc; color:#0969da">
+                <i class="fa-solid fa-paperclip"></i> 插入文件
+            </button>
+        </div>
+
+        <textarea id="content" placeholder="在此开始撰写正文... 支持 Markdown 语法"></textarea>
+    </div>
+
+    <!-- 3. 新增：预览视图 (默认隐藏) -->
+    <div id="preview-view">
+        <div id="preview-content" class="markdown-body">
+            <!-- 渲染后的 HTML 将放在这里 -->
+        </div>
+    </div>
     
     <div class="footer">
         <span class="status" id="status-text">准备就绪</span>
-        <button id="saveBtn" class="btn-save">保存贴文</button>
+        <button id="saveBtn" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> 保存贴文</button>
     </div>
 
-    <!-- 文件选择弹窗 -->
+    <!-- 文件选择弹窗 (保持不变) -->
     <div id="modal-overlay">
         <div id="modal">
             <h3 style="margin-top:0">选择要插入的文件</h3>
@@ -82,49 +218,80 @@
         const contentArea = document.getElementById("content");
         const statusText = document.getElementById("status-text");
         const saveBtn = document.getElementById("saveBtn");
+        const previewContent = document.getElementById("preview-content");
 
         const params = new URLSearchParams(location.search);
-        // decodeURIComponent 确保编辑中文文件名时正常显示
         const editFilename = params.get("edit") ? decodeURIComponent(params.get("edit")) : null;
         
         // --- 初始化 ---
         async function init() {
             if (editFilename) {
-                // 编辑模式
                 statusText.innerText = `正在编辑: ${editFilename}`;
-                saveBtn.innerText = "更新贴文";
+                saveBtn.innerHTML = `<i class="fa-solid fa-rotate"></i> 更新贴文`;
                 
                 try {
                     const fullText = await getPost(editFilename);
                     const lines = fullText.split('\n');
                     
-                    // 尝试从第一行提取标题显示在输入框
+                    // 尝试分离标题和正文
                     if (lines[0].startsWith('# ')) {
                         titleInput.value = lines[0].replace('# ', '').trim();
                         contentArea.value = lines.slice(1).join('\n').trim();
                     } else {
-                        // 如果第一行不是标题，尝试从文件名提取
                         const nameWithoutDate = editFilename.replace(".md", "").replace(/^\d{4}-\d{2}-\d{2}-/, "");
                         titleInput.value = nameWithoutDate;
                         contentArea.value = fullText;
                     }
                 } catch(e) { alert("加载失败: " + e.message); }
             } else {
-                // 新建模式
                 statusText.innerText = "新建模式";
             }
         }
         init();
 
-        // --- 辅助函数：生成当前日期的文件名 ---
+        // --- 标签页切换逻辑 ---
+        window.switchTab = (tab) => {
+            const editorView = document.getElementById("editor-view");
+            const previewView = document.getElementById("preview-view");
+            const btnEdit = document.getElementById("tab-edit");
+            const btnPreview = document.getElementById("tab-preview");
+
+            if (tab === 'edit') {
+                editorView.style.display = "block";
+                previewView.style.display = "none";
+                btnEdit.classList.add("active");
+                btnPreview.classList.remove("active");
+            } else {
+                // 切换到预览时：执行渲染
+                editorView.style.display = "none";
+                previewView.style.display = "block";
+                btnEdit.classList.remove("active");
+                btnPreview.classList.add("active");
+
+                // 获取当前内容并渲染
+                const rawMarkdown = contentArea.value;
+                const title = titleInput.value.trim();
+                
+                // 模拟文章结构：加上 H1 标题
+                const previewMd = `# ${title || '无标题'}\n\n${rawMarkdown}`;
+                
+                // 使用 marked 渲染
+                previewContent.innerHTML = marked.parse(previewMd);
+                
+                // 处理图片错误
+                previewContent.querySelectorAll('img').forEach(img => {
+                    img.onerror = () => { img.style.border = "1px solid #555"; img.alt += " (未找到)"; };
+                });
+            }
+        };
+
+        // --- 辅助函数：生成目标文件名 ---
         function generateTargetName(title) {
-            if(editFilename) return editFilename.replace(".md", ""); // 编辑模式用原名
-            
+            if(editFilename) return editFilename.replace(".md", ""); 
             const now = new Date();
             const y = now.getFullYear();
             const m = String(now.getMonth() + 1).padStart(2, '0');
             const d = String(now.getDate()).padStart(2, '0');
-            // 结果: 2026-01-14-我的标题
             return `${y}-${m}-${d}-${title}`;
         }
 
@@ -145,7 +312,6 @@
             if (!file) return;
 
             const title = titleInput.value.trim();
-            // 获取文件夹名：2026-01-14-我的标题
             const folderName = generateTargetName(title);
 
             const token = prompt(`📂 图片将存入 images/${folderName}\n请输入 Token:`);
@@ -181,11 +347,9 @@
             saveBtn.disabled = true;
 
             try {
-                // 生成最终文件名: 2026-01-14-我的标题.md
                 const targetFilename = generateTargetName(title) + ".md";
-                
                 await savePost(targetFilename, finalContent, token);
-                alert(`✅ 保存成功！\n文件: ${targetFilename}`);
+                alert(`✅ 保存成功！`);
                 window.location.href = "index.html";
             } catch (e) {
                 alert("❌ 保存失败: " + e.message);
@@ -194,23 +358,26 @@
             }
         };
 
-        // --- 常用工具 ---
+        // --- 工具栏函数 ---
         window.insertMD = (prefix, suffix) => {
             const start = contentArea.selectionStart;
             const end = contentArea.selectionEnd;
             const text = contentArea.value;
             contentArea.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
             contentArea.focus();
+            contentArea.selectionStart = start + prefix.length;
+            contentArea.selectionEnd = end + prefix.length;
         };
         window.insertTable = () => window.insertMD('\n| 表头1 | 表头2 |\n| --- | --- |\n| 内容1 | 内容2 |\n', '');
         
-        // --- 文件选择器 (保持不变) ---
+        // --- 文件选择器逻辑 ---
         let currentPath = "";
         document.getElementById("openFileBtn").onclick = () => {
             document.getElementById("modal-overlay").style.display = "block";
             loadFiles("");
         };
         window.closeModal = () => { document.getElementById("modal-overlay").style.display = "none"; };
+        
         async function loadFiles(path) {
             currentPath = path;
             document.getElementById("current-path").innerText = "路径: " + (path || "根目录");
