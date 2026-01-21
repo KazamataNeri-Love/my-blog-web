@@ -235,20 +235,21 @@
         const uiFile = document.getElementById("article-file");
         const btnEdit = document.getElementById("btn-edit");
 
-        // 全局变量存储文章列表，用于搜索
         let allPosts = [];
 
         // --- 初始化 ---
         async function init() {
-            // 1. 加载侧边栏
             await loadSidebar();
-
-            // 2. 检查 URL 是否带有 ?f=xxx.md 参数
+            
+            // 检查 URL 是否带有 ?f=xxx.md 参数
             const params = new URLSearchParams(location.search);
             const filename = params.get("f");
             
             if (filename) {
                 loadContent(decodeURIComponent(filename));
+            } else {
+                // 如果没有参数，默认显示首页
+                showHome();
             }
         }
         init();
@@ -257,46 +258,50 @@
         async function loadSidebar() {
             try {
                 const posts = await listPosts();
-                // 仅保留 .md 文件
                 const mdFiles = posts.filter(p => p.name.endsWith(".md"));
-                // 排序：最新的在上 (基于文件名日期)
-                mdFiles.sort((a, b) => b.name.localeCompare(a.name));
+                mdFiles.sort((a, b) => b.name.localeCompare(a.name)); // 倒序
                 
-                allPosts = mdFiles; // 存入全局变量供搜索用
+                allPosts = mdFiles;
                 renderSidebar(mdFiles);
-
             } catch (e) {
                 console.error(e);
                 sidebarList.innerHTML = `<li style="color:#ff6b6b; padding:15px">⚠️ 列表加载失败</li>`;
             }
         }
 
-        // --- 渲染侧边栏列表 ---
+        // --- 渲染侧边栏列表 (新增：首页按钮) ---
         function renderSidebar(files) {
             sidebarList.innerHTML = "";
             
+            // 1. 新增：始终在最上方显示“返回首页”按钮
+            const homeLi = document.createElement("li");
+            homeLi.innerHTML = `
+                <div class="nav-item" id="nav-home" onclick="showHome()">
+                    <i class="fa-solid fa-house"></i>
+                    <span>首页 / 简介</span>
+                </div>
+            `;
+            sidebarList.appendChild(homeLi);
+
             if (files.length === 0) {
-                sidebarList.innerHTML = "<li class='nav-item'>暂无匹配文章</li>";
+                sidebarList.innerHTML += "<li class='nav-item' style='pointer-events:none; opacity:0.5'>暂无匹配文章</li>";
                 return;
             }
 
-            // 添加一个分组标题
+            // 分组标题
             const groupTitle = document.createElement("li");
             groupTitle.className = "nav-group-title";
             groupTitle.innerHTML = `<i class="fa-regular fa-folder-open"></i> 文章列表 (${files.length})`;
             sidebarList.appendChild(groupTitle);
 
+            // 2. 渲染文章列表
             for (const file of files) {
                 const li = document.createElement("li");
-                
-                // 处理显示名：去掉 .md 和日期前缀
                 let rawName = decodeURIComponent(file.name);
                 let displayName = rawName.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                 
-                // 创建列表项
-                // 注意：这里不再用 href 跳转，而是 onclick 调用 loadContent
                 li.innerHTML = `
-                    <div class="nav-item" data-filename="${file.name}" onclick="handlePostClick('${file.name}', this)">
+                    <div class="nav-item file-item" data-filename="${file.name}" onclick="handlePostClick('${file.name}', this)">
                         <i class="fa-regular fa-file-lines"></i>
                         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</span>
                     </div>
@@ -304,94 +309,103 @@
                 sidebarList.appendChild(li);
             }
             
-            // 如果当前有选中的文章，高亮它
+            updateActiveState();
+        }
+
+        // --- 新增：返回首页逻辑 ---
+        window.showHome = () => {
+            // 清除 URL 参数
+            const url = new URL(window.location);
+            url.searchParams.delete('f');
+            window.history.pushState({}, '', url);
+
+            // 切换 UI 显示
+            headerArea.style.display = "none";     // 隐藏文章头部
+            articleBody.innerHTML = "";            // 清空文章内容
+            emptyState.style.display = "block";    // 显示欢迎页
+            
+            updateActiveState();
+        };
+
+        window.handlePostClick = (filename, element) => {
+            loadContent(filename);
+            // 移动端可在此处添加关闭侧边栏逻辑
+        };
+
+        // 辅助：更新侧边栏高亮状态
+        function updateActiveState() {
+            // 移除所有 active
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
             const params = new URLSearchParams(location.search);
             const currentFile = params.get("f");
-            if(currentFile) {
-                const activeItem = document.querySelector(`.nav-item[data-filename="${decodeURIComponent(currentFile)}"]`);
+
+            if (!currentFile) {
+                // 如果没有文件参数，高亮“首页”
+                const homeBtn = document.getElementById("nav-home");
+                if(homeBtn) homeBtn.classList.add("active");
+            } else {
+                // 高亮对应文件
+                const activeItem = document.querySelector(`.file-item[data-filename="${decodeURIComponent(currentFile)}"]`);
                 if(activeItem) activeItem.classList.add("active");
             }
         }
 
-        // --- 全局暴露点击处理函数 ---
-        window.handlePostClick = (filename, element) => {
-            // 1. UI 高亮切换
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            
-            // 2. 加载内容
-            loadContent(filename);
-            
-            // 3. 移动端点击后自动收起侧边栏 (可选)
-            // document.getElementById('sidebar').classList.remove('open');
-        };
-
-        // --- 核心：加载并渲染文章内容 ---
+        // --- 加载内容 (修改：去重标题) ---
         async function loadContent(filename) {
-            // 切换到加载状态
             headerArea.style.display = "none";
             emptyState.style.display = "none";
-            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><br><br>正在读取: ${filename}</div>`;
+            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
             
-            // 更新 URL (不刷新页面)
             const newUrl = `${window.location.pathname}?f=${encodeURIComponent(filename)}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
+            updateActiveState();
 
             try {
-                // 调用 API 获取 Markdown 文本
-                const text = await getPost(filename);
+                let text = await getPost(filename);
                 
-                // 解析 Markdown
-                articleBody.innerHTML = marked.parse(text);
+                // --- 修复标题重复显示逻辑 ---
+                const lines = text.split('\n');
+                const firstLine = lines[0].trim();
+                let renderText = text; // 默认渲染全部
 
-                // 更新头部信息
-                uiFile.innerText = filename;
-                
-                // 尝试从文件名提取日期
-                const dateMatch = filename.match(/^(\d{4}-\d{1,2}-\d{1,2})-/);
-                uiDate.innerHTML = `<i class="fa-regular fa-calendar"></i> ${dateMatch ? dateMatch[1] : '未知日期'}`;
-
-                // 尝试从正文第一行提取 H1 作为标题，否则用文件名
-                const firstLine = text.split('\n')[0];
+                // 如果第一行是 H1 (# 标题)
                 if (firstLine.startsWith('# ')) {
-                    uiTitle.innerText = firstLine.replace('# ', '').trim();
+                    // 1. 提取标题给 UI 头部用
+                    uiTitle.innerText = firstLine.replace(/^#\s+/, '').trim();
+                    // 2. 从正文中移除第一行，防止 marked 再次渲染它
+                    renderText = lines.slice(1).join('\n');
                 } else {
+                    // 如果没写 # 标题，就用文件名作为 UI 标题
                     uiTitle.innerText = filename.replace(".md", "").replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                 }
+                // ---------------------------
 
-                // 更新编辑按钮链接
+                articleBody.innerHTML = marked.parse(renderText);
+
+                // 更新元数据
+                uiFile.innerText = filename;
+                const dateMatch = filename.match(/^(\d{4}-\d{1,2}-\d{1,2})-/);
+                uiDate.innerHTML = `<i class="fa-regular fa-calendar"></i> ${dateMatch ? dateMatch[1] : '日期未知'}`;
                 btnEdit.href = `editor.html?edit=${encodeURIComponent(filename)}`;
 
-                // 显示头部
                 headerArea.style.display = "block";
 
-                // --- 绑定正文内的交互事件 ---
-                
-                // 1. 文件下载按钮
+                // 绑定下载按钮事件
                 articleBody.querySelectorAll('.file-download').forEach(btn => {
                     btn.onclick = (e) => {
-                        e.preventDefault(); // 防止跳转
-                        const path = btn.getAttribute('data-path');
-                        downloadFile(path);
+                        e.preventDefault();
+                        downloadFile(btn.getAttribute('data-path'));
                     };
-                });
-
-                // 2. 图片错误处理 (可选)
-                articleBody.querySelectorAll('img').forEach(img => {
-                    img.onerror = () => { img.style.border = "1px solid red"; img.alt += " (加载失败)"; };
                 });
 
             } catch (e) {
                 console.error(e);
-                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px; border:1px solid #ff6b6b; border-radius:6px;">
-                    <h3><i class="fa-solid fa-triangle-exclamation"></i> 读取失败</h3>
-                    <p>${e.message}</p>
-                    <button class="btn" onclick="location.reload()">刷新重试</button>
-                </div>`;
+                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px;">❌ 加载失败: ${e.message}</div>`;
             }
         }
 
-        // --- 搜索功能 ---
+        // 搜索功能
         searchInput.addEventListener('input', (e) => {
             const keyword = e.target.value.toLowerCase();
             const filtered = allPosts.filter(p => p.name.toLowerCase().includes(keyword));
