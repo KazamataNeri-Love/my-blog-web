@@ -6,14 +6,16 @@
 （以下来自Bilibili用户@v2df_t在视频《Trance的30年（1995-2025代表性Trance）》BV1p2DgBbEoo 中的评论）
 
 其中J-Trance内部又可以大致分为四/五个派别：<br>
-1. **Hiroyuki ODA**（神崎广）。论外，算是日本制作人里为数极少比较接近欧美零几年 Classic Trance/Uplifting Trance 风格的，除了他的 Vocaloid Trance/Miku Trance 外，风格相较日系更偏欧系荷兰那边的，所以也是亚洲最早打入 ASOT 厂（可以理解为最大的 Trance 厂）的制作人。<br>
+1. **Hiroyuki ODA**（神崎广）。<br>
+论外，算是日本制作人里为数极少比较接近欧美零几年 Classic Trance/Uplifting Trance 风格的，除了他的 Vocaloid Trance/Miku Trance 外，风格相较日系更偏欧系荷兰那边的，所以也是亚洲最早打入 ASOT 厂（可以理解为最大的 Trance 厂）的制作人。<br>
 ||推荐作品|作者|
 |-|---|--|
 |单曲| Unfragment (Original Mix) | Hiroyuki ODA |
 |单曲| Crux (Original Mix) | Hiroyuki ODA |
 |单曲| Yozora (2020 Rework) | Hiroyuki ODA |
 
-2. **Campaign for Real**。J-Trance 厂，尤其是 **Bernis** 与 厂长 **Dachs**，这两人风格受 10 年代 Blue Soho、Abora、Defcon 这些厂发展起来的 Emotional/Orchestral Uplifting 风格影响比较大，旋律与音色比较柔和。<br>
+2. **Campaign for Real**。<br>
+J-Trance 厂，尤其是 **Bernis** 与 厂长 **Dachs**，这两人风格受 10 年代 Blue Soho、Abora、Defcon 这些厂发展起来的 Emotional/Orchestral Uplifting 风格影响比较大，旋律与音色比较柔和。<br>
 ||推荐作品|作者|
 |-|-----|--|
 |专辑| Hymnal for Halcyon Days | Bernis \ Digital Logics |
@@ -21,7 +23,8 @@
 |单曲| Mother Earth (Original Mix) | Dachs |
 |单曲| Holy Night, Silent Night| Dachs |
 
-3. **古代佑三**、**SHIKI**、**void** 等这一派，风格更接近 Trance 在日本最早发展的形态，包括 Euro Trance、Psytrance 等，听众常说的日系 Trance 混音的问题其实主要就源自这些传统日系 Trance 普遍存在的**忽视高频混音**的问题，不过 void 等较新生代的制作人在此方面有一定进步。<br>
+3. **古代佑三**、**SHIKI**、**void** 等<br>
+这一派风格更接近 Trance 在日本最早发展的形态，包括 Euro Trance、Psytrance 等，听众常说的日系 Trance 混音的问题其实主要就源自这些传统日系 Trance 普遍存在的**忽视高频混音**的问题，不过 void 等较新生代的制作人在此方面有一定进步。<br>
 ||推荐作品|作者|
 |-|-----|--|
 |单曲| Never Throw Away| 古代佑三 |
@@ -30,7 +33,8 @@
 |单曲| When the rain | void |
 
 
-4. **Nhato** 与 **Taishi**。Nhato 在 10 年代成为继神崎广之后又一位打入欧美市场的制作人，代表风格是与 Complextro、Color Bass 等风格融合的新式 Trance。Taishi 则更偏向日系传统旋律派一些，但也富有创新性。这两人除了创新性外，**在混音上也比一般日系制作人好不少**。<br>
+4. **Nhato** 与 **Taishi**。<br>
+Nhato 在 10 年代成为继神崎广之后又一位打入欧美市场的制作人，代表风格是与 Complextro、Color Bass 等风格融合的新式 Trance。Taishi 则更偏向日系传统旋律派一些，但也富有创新性。这两人除了创新性外，**在混音上也比一般日系制作人好不少**。<br>
 特别值得注意的是Taishi在电子音乐交响化上的尝试。专辑《Phant》以及其后续的系列中，Taishi谱写了bluefieldcreator（时长：16:14）等诸多优秀的trance。<br>
 ||推荐作品|作者|
 |-|-----|--|
@@ -39,7 +43,7 @@
 |单曲| bluefieldcreator | Taishi |
 |单曲| One Day's Sunlight (Original Mix) | Taishi |
 
-5. **I've社**。
+5. **I've社**。<br>
 I've社是日本音乐界一个极具影响力的音乐创作团体，成立于1998年左右，由核心人物**高濑一矢**（Kazuya Takase）领衔。它在2000年代的ACG（动画、漫画、游戏）领域，特别是美少女游戏（Galgame）和电视动画音乐界，拥有举足轻重的地位。它不仅仅是一个乐队，更是一个音乐制作集团。其最初主要为PC美少女游戏制作BGM和主题曲。<br>
 I've 的标志性风格被称为 “I've Sound”。这种风格以**电子舞曲如Trance、Techno、Eurobeat等**为基调，结合了流行乐的旋律和数字合成器的强烈节奏感。<br>
 ||推荐作品|演唱者|作曲|编曲|出处|
