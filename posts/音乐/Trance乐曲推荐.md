@@ -161,7 +161,7 @@ pixiv的名字是<b>かんざき</b>。<br>
 ### [The Endless Love][单曲专] *2011.04.28*
 <table>
  <tr>
-  <td style="color: #ffd400; width: 13%"> <b>Uplifting</b> </td>
+  <td style="color: #ffd400; width: 20%"> <b>Uplifting</b> </td>
   <td> The Endless Love</td>
   <td style="width: 30px"> #1</td>
  </tr>
@@ -171,7 +171,7 @@ pixiv的名字是<b>かんざき</b>。<br>
 ### [Waves of Euphoria][多人专] *2019.12.31*
 <table>
  <tr>
-  <td style="color: #ffd400; width: 13%"> <b>Uplifting</b> </td>
+  <td style="color: #ffd400; width: 20%"> <b>Uplifting</b> </td>
   <td> Recollection 2000 (2019 Mix)</td>
   <td style="width: 30px"> #1</td>
  </tr>
