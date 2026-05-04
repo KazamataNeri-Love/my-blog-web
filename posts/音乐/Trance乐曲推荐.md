@@ -4,13 +4,11 @@
 <br>
 日系trance是trance中一个特殊的存在，就目前而言，J-Trance与常规trance的风格相差已经并不小了。<br>
 <br>
-（以下来自Bilibili用户@v2df_t在视频《Trance的30年（1995-2025代表性Trance）》BV1p2DgBbEoo 中的评论）<br>
-<br>
-其中J-Trance内部又可以大致分为四/五个派别：<br>
+其中J-Trance内部又可以大致分为四个（或者五个，考虑I've社）派别：<br>
 <br>
 1. <b>Hiroyuki ODA</b>（神崎广）。<br>
 <br>
-论外，算是日本制作人里为数极少比较接近欧美零几年 Classic Trance/Uplifting Trance 风格的，除了他的 Vocaloid Trance/Miku Trance 外，风格相较日系更偏欧系荷兰那边的，所以也是亚洲最早打入 ASOT 厂（可以理解为最大的 Trance 厂）的制作人。<br>
+论外级别。算是日本制作人里为数极少比较接近欧美零几年 Classic Trance/Uplifting Trance 风格的，除了他的 Vocaloid Trance/Miku Trance 外，风格相较日系更偏欧系荷兰那边的，所以也是亚洲最早打入 ASOT 厂（可以理解为最大的 Trance 厂）的制作人。<br>
 <br>
 
 ||推荐作品|作者|
