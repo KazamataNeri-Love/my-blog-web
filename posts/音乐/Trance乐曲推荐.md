@@ -4,7 +4,7 @@
 <br>
 日系trance是trance中一个特殊的存在，就目前而言，J-Trance与常规trance的风格相差已经并不小了。<br>
 <br>
-（以下来自Bilibili用户@v2df_t在视频《Trance的30年（1995-2025代表性Trance）》BV1p2DgBbEoo 中的评论）<br>
+（以下部分内容来自Bilibili用户@v2df_t在视频《Trance的30年（1995-2025代表性Trance）》BV1p2DgBbEoo 中的评论）<br>
 <br>
 其中J-Trance内部又可以大致分为四/五个派别：<br>
 <br>
