@@ -1,5 +1,5 @@
+# Trance —— 迷幻舞曲推荐
 # 日系Trance
-
 ## 综述
 <br>
 日系trance是trance中一个特殊的存在，就目前而言，J-Trance与常规trance的风格相差已经并不小了。<br>
@@ -155,6 +155,15 @@ pixiv的名字是<b>かんざき</b>。<br>
   <td style="color: #00FDD6"> <b>Progressive</b> </td>
   <td> Luminescence (Original Mix)</td>
   <td> #5</td>
+ </tr>
+</table>
+
+### [The Endless Love][单曲专] 2011.4.28
+<table>
+ <tr>
+  <td style="color: #ffd400; width: 12.5%"> <b>Uplifting</b> </td>
+  <td>The Endless Love</td>
+  <td style="width: 30px"> #1</td>
  </tr>
 </table>
 
