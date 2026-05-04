@@ -435,6 +435,8 @@ const fileCardHtml = `<div class="file-card">
 
         window.triggerFileSelect = () => {
             if(!titleInput.value.trim() && !editPath) return alert("请先输入路径/标题");
+            // clear previous width value when starting a new upload flow
+            const w = document.getElementById('img-width-input'); if (w) w.value = '';
             imgInput.click();
         };
 
@@ -444,6 +446,8 @@ const fileCardHtml = `<div class="file-card">
             const reader = new FileReader();
             reader.onload = (e) => imgPreviewBox.innerHTML = `<img src="${e.target.result}" style="max-height:100%">`;
             reader.readAsDataURL(selectedImgFile);
+            // clear/reset width input and show modal
+            const w = document.getElementById('img-width-input'); if (w) w.value = '';
             imgModal.style.display = "flex";
             const savedToken = localStorage.getItem("github_token");
             if(savedToken) document.getElementById("upload-token").value = savedToken;
