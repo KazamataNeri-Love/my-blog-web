@@ -1,10 +1,12 @@
+# Trance 乐曲推荐 ———— 迷幻电子的交响
 # 日系Trance
 
 ## 综述
 <br>
 日系trance是trance中一个特殊的存在，就目前而言，J-Trance与常规trance的风格相差已经并不小了。<br>
+
 <br>
-其中J-Trance内部又可以大致分为四个（或者五个，考虑I've社）派别：<br>
+其中J-Trance内部又可以大致分为四/五个派别：<br>
 <br>
 1. <b>Hiroyuki ODA</b>（神崎广）。<br>
 <br>
