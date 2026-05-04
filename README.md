@@ -2,9 +2,6 @@
 
 个人资源站
 
-一般包括：
-
-音游谱面资源，
-CG、立绘等美术资源。
+写写歌曲推荐和Gal游玩随想等。
 
 网站：https://kazamataneri-love.github.io/my-blog-web/index.html
