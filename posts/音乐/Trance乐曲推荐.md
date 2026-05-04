@@ -1,5 +1,5 @@
-# Trance —— 迷幻舞曲推荐
 # 日系Trance
+
 ## 综述
 <br>
 日系trance是trance中一个特殊的存在，就目前而言，J-Trance与常规trance的风格相差已经并不小了。<br>
@@ -107,7 +107,7 @@ pixiv的名字是<b>かんざき</b>。<br>
 
 <table>
  <tr>
-  <td style="color: #00FF20; width: 12.5%"> <b>Intro</b> </td>
+  <td style="color: #00FF20; width: 13%"> <b>Intro</b> </td>
   <td> Hello, World </td>
   <td style="width: 30px"> #1</td>
  </tr>
@@ -137,7 +137,7 @@ pixiv的名字是<b>かんざき</b>。<br>
 
 <table>
  <tr>
-  <td style="color: #00FDD6; width: 12.5%"> <b>Progressive</b> </td>
+  <td style="color: #00FDD6; width: 13%"> <b>Progressive</b> </td>
   <td> Thirty (Original Mix)</td>
   <td style="width: 30px"> #1</td>
  </tr>
@@ -158,19 +158,20 @@ pixiv的名字是<b>かんざき</b>。<br>
  </tr>
 </table>
 
-### [The Endless Love][单曲专] 2011.4.28
+### [The Endless Love][单曲专] *2011.04.28*
 <table>
  <tr>
-  <td style="color: #ffd400; width: 12.5%"> <b>Uplifting</b> </td>
-  <td>The Endless Love</td>
+  <td style="color: #ffd400; width: 13%"> <b>Uplifting</b> </td>
+  <td> The Endless Love</td>
   <td style="width: 30px"> #1</td>
  </tr>
 </table>
 
-### [Waves of Euphoria][多人专] 2019.12.31
+
+### [Waves of Euphoria][多人专] *2019.12.31*
 <table>
  <tr>
-  <td style="color: #ffd400; width: 12.5%"> <b>Uplifting</b> </td>
+  <td style="color: #ffd400; width: 13%"> <b>Uplifting</b> </td>
   <td> Recollection 2000 (2019 Mix)</td>
   <td style="width: 30px"> #1</td>
  </tr>
