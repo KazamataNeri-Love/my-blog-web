@@ -104,9 +104,7 @@ pixiv的名字是<b>かんざき</b>。<br>
 <br>
 
 
-
-![1777912582074-Unfragment.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/images/Trance%E4%B9%90%E6%9B%B2%E6%8E%A8%E8%8D%90/1777914149541-1777912582074-Unfragment.png)
-
+![Unfragment.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/images/Trance%E4%B9%90%E6%9B%B2%E6%8E%A8%E8%8D%90/1777914485332-Unfragment.png "width=35%")
 
 *-- Unfragment的一张曲绘，神崎广的画风非常有特色，一眼便能看出。*
 
