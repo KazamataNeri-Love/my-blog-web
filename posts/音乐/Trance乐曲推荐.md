@@ -107,9 +107,9 @@ pixiv的名字是<b>かんざき</b>。<br>
 
 <table>
  <tr>
-  <td style="color: #00FF20; width: 13%"> <b>Intro</b> </td>
-  <td> Hello, World </td>
-  <td style="width: 30px"> #1</td>
+  <td style="color: #00FF20; width: 20%"> <b>Intro</b> </td>
+  <td style="width: 74%"> Hello, World </td>
+  <td style="width: 6%"> #1</td>
  </tr>
  <tr>
   <td style="color: #ffd400"> <b>Uplifting</b> </td>
@@ -137,9 +137,9 @@ pixiv的名字是<b>かんざき</b>。<br>
 
 <table>
  <tr>
-  <td style="color: #00FDD6; width: 13%"> <b>Progressive</b> </td>
-  <td> Thirty (Original Mix)</td>
-  <td style="width: 30px"> #1</td>
+  <td style="color: #00FDD6; width: 20%"> <b>Progressive</b> </td>
+  <td style="width: 74%"> Thirty (Original Mix)</td>
+  <td style="width: 6%"> #1</td>
  </tr>
  <tr>
   <td style="color: #00FDD6"> <b>Progressive</b> </td>
@@ -162,8 +162,8 @@ pixiv的名字是<b>かんざき</b>。<br>
 <table>
  <tr>
   <td style="color: #ffd400; width: 20%"> <b>Uplifting</b> </td>
-  <td> The Endless Love</td>
-  <td style="width: 30px"> #1</td>
+  <td style="width: 74%"> The Endless Love</td>
+  <td style="width: 6%"> #1</td>
  </tr>
 </table>
 
@@ -172,8 +172,8 @@ pixiv的名字是<b>かんざき</b>。<br>
 <table>
  <tr>
   <td style="color: #ffd400; width: 20%"> <b>Uplifting</b> </td>
-  <td> Recollection 2000 (2019 Mix)</td>
-  <td style="width: 30px"> #1</td>
+  <td style="width: 74%"> Recollection 2000 (2019 Mix)</td>
+  <td style="width: 6%"> #1</td>
  </tr>
 </table>
 
