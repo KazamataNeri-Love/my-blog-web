@@ -160,7 +160,14 @@
         .markdown-body table { border-spacing: 0; border-collapse: collapse; width: 100%; margin-bottom: 16px; display: block; overflow: auto;}
         .markdown-body table th, .markdown-body table td { padding: 6px 13px; border: 1px solid #30363d; }
         .markdown-body table th { background-color: #161b22; }
-        .markdown-body img { max-width: 60%; border-radius: 4px; background-color: #fff; }
+        .markdown-body img { max-width: 100%; height: auto; border-radius: 4px; background-color: #fff; display: block; margin: 12px 0; }
+        .img-wrap { position: relative; display: inline-block; }
+        .img-size-badge {
+            position: absolute; right: 6px; bottom: 6px;
+            background: rgba(0,0,0,0.6); color: #fff; font-size: 11px; padding: 3px 6px; border-radius: 4px;
+            display: none; pointer-events: none;
+        }
+        .img-wrap:hover .img-size-badge { display: block; }
 
         /* 文件卡片样式 */
         .file-card { background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px 16px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
@@ -492,9 +499,74 @@
                         downloadFile(btn.getAttribute('data-path'));
                     };
                 });
-                
+
+                // 处理图片：从 title 或 data-width 读取宽度设定并应用；添加悬浮尺寸徽章和双击编辑宽度
                 articleBody.querySelectorAll('img').forEach(img => {
-                    img.onerror = () => { img.style.border = "1px solid #555"; img.alt += " (图片加载失败)"; };
+                    // avoid processing if already wrapped
+                    if (img.dataset._processed === '1') return;
+
+                    const title = img.getAttribute('title') || '';
+                    let widthSpec = img.dataset.width || '';
+                    const m = title.match(/(?:w|width)\s*[:=]\s*(\d+%?|\d+px|1|orig|original)/i);
+                    if (!widthSpec && m) widthSpec = m[1];
+                    if (!widthSpec && img.hasAttribute('data-width')) widthSpec = img.getAttribute('data-width');
+
+                    function applyWidth(spec) {
+                        if (!spec) {
+                            img.style.width = '';
+                            img.style.maxWidth = '100%';
+                            img.dataset.width = '';
+                            img.setAttribute('title', '');
+                            return;
+                        }
+                        if (spec === '1' || /^orig(?:inal)?$/i.test(spec)) {
+                            img.style.width = 'auto';
+                            img.style.maxWidth = 'none';
+                        } else if (/^\d+%$/.test(spec) || /^\d+$/.test(spec)) {
+                            if (/^\d+$/.test(spec)) spec = spec + '%';
+                            img.style.width = spec;
+                            img.style.maxWidth = '100%';
+                        } else if (/px$/.test(spec)) {
+                            img.style.width = spec;
+                            img.style.maxWidth = 'none';
+                        } else {
+                            img.style.width = spec;
+                        }
+                        img.dataset.width = spec;
+                        img.setAttribute('title', 'width=' + spec);
+                    }
+
+                    applyWidth(widthSpec);
+
+                    // wrap
+                    const wrap = document.createElement('span');
+                    wrap.className = 'img-wrap';
+                    img.parentNode.insertBefore(wrap, img);
+                    wrap.appendChild(img);
+                    const badge = document.createElement('span');
+                    badge.className = 'img-size-badge';
+                    badge.innerText = img.dataset.width || '';
+                    wrap.appendChild(badge);
+
+                    img.addEventListener('dblclick', () => {
+                        const cur = img.dataset.width || '';
+                        const input = prompt('设置图片宽度：输入数字带%（如50%）或像素(px)（如400px），输入1或orig表示原始像素，留空恢复默认', cur);
+                        if (input === null) return;
+                        const val = input.trim();
+                        if (val === '') {
+                            applyWidth('');
+                            badge.innerText = '';
+                        } else {
+                            let spec = val;
+                            if (/^\d+$/.test(spec)) spec = spec + '%';
+                            applyWidth(spec);
+                            badge.innerText = img.dataset.width;
+                        }
+                    });
+
+                    img.onerror = () => { img.style.border = '1px solid #555'; img.alt += ' (图片加载失败)'; };
+                    img.loading = 'lazy';
+                    img.dataset._processed = '1';
                 });
 
             } catch (e) {
