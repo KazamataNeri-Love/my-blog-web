@@ -24,7 +24,7 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="min-h-screen app-bg">
     <!-- 顶部功能栏气泡 -->
     <header
       class="border-default-200 bg-background/80 z-kun-sticky sticky top-0 flex items-center justify-between border-b px-4 py-2 backdrop-blur"

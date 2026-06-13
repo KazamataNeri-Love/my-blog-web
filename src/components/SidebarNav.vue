@@ -40,7 +40,7 @@ function openEditor() {
 
 <template>
   <aside
-    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] min-w-0 flex-col border-r bg-default-100/20"
+    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] min-w-0 flex-col border-r bg-default-100/90 backdrop-blur-sm"
   >
     <!-- 频道导航 -->
     <div class="flex-1 overflow-y-auto px-3 py-5 space-y-1 scrollbar-hide">

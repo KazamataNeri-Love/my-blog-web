@@ -41,7 +41,7 @@ const lastUpdated = computed(() => {
 </script>
 
 <template>
-  <aside class="min-w-0 overflow-y-auto px-5 pt-6 pb-5 space-y-5">
+  <aside class="min-w-0 overflow-y-auto px-5 pt-6 pb-5 space-y-5 bg-default-100/80 backdrop-blur-sm">
     <!-- === 常态：站长信息气泡 === -->
     <div v-if="!isReading" class="flex flex-col items-center text-center gap-4">
       <!-- 头像（纯色背景 + 黑色边框圆形） -->

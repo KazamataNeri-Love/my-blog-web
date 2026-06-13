@@ -25,8 +25,28 @@ html {
 }
 
 /* ============================================================
- * Custom utility classes
+ * Background image with dark/light overlay
  * ============================================================ */
+.app-bg {
+  background-image: url('https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Background/Default.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Dark mode overlay (夜间：黑色半透明在上层) */
+.kun-dark-mode .app-bg {
+  background-image: 
+    linear-gradient(hsla(0, 0%, 0%, 0.82), hsla(0, 0%, 0%, 0.82)),
+    url('https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Background/Default.png');
+}
+
+/* Light mode overlay (日间：白色半透明在上层) */
+html:not(.kun-dark-mode) .app-bg {
+  background-image: 
+    linear-gradient(hsla(0, 0%, 100%, 0.85), hsla(0, 0%, 100%, 0.85)),
+    url('https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Background/Default.png');
+}
 .kun-prose img {
   cursor: zoom-in;
 }
