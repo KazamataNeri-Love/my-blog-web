@@ -18,10 +18,15 @@ const showSearch = ref(false)
 
 // Settings modal
 const showSettings = ref(false)
-const bgOpacity = ref(Number(localStorage.getItem('bg-opacity')) || 82)
+const bgBrightness = ref(Number(localStorage.getItem('bg-brightness')) || 82)
+const glassOpacity = ref(Number(localStorage.getItem('glass-opacity')) || 70)
 watchEffect(() => {
-  document.documentElement.style.setProperty('--bg-overlay-opacity', String(bgOpacity.value / 100))
-  localStorage.setItem('bg-opacity', String(bgOpacity.value))
+  document.documentElement.style.setProperty('--bg-overlay-opacity', String(bgBrightness.value / 100))
+  localStorage.setItem('bg-brightness', String(bgBrightness.value))
+})
+watchEffect(() => {
+  document.documentElement.style.setProperty('--kun-global-opacity', String(glassOpacity.value / 100))
+  localStorage.setItem('glass-opacity', String(glassOpacity.value))
 })
 
 function goHome() {
@@ -139,17 +144,36 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
         </h3>
 
         <div class="space-y-5">
-          <!-- 页面透明度 -->
+          <!-- 背景亮度 -->
           <div>
             <label class="modal-label flex items-center justify-between">
-              <span>页面透明度</span>
-              <span class="text-foreground font-mono text-sm">{{ bgOpacity }}%</span>
+              <span>背景亮度</span>
+              <span class="text-foreground font-mono text-sm">{{ bgBrightness }}%</span>
             </label>
             <input
               type="range"
               min="0"
               max="100"
-              v-model.number="bgOpacity"
+              v-model.number="bgBrightness"
+              class="w-full accent-primary cursor-pointer"
+            />
+            <div class="flex justify-between text-xs text-default-400 mt-1">
+              <span>暗</span>
+              <span>亮</span>
+            </div>
+          </div>
+
+          <!-- 页面透明度 -->
+          <div>
+            <label class="modal-label flex items-center justify-between">
+              <span>页面透明度</span>
+              <span class="text-foreground font-mono text-sm">{{ glassOpacity }}%</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              v-model.number="glassOpacity"
               class="w-full accent-primary cursor-pointer"
             />
             <div class="flex justify-between text-xs text-default-400 mt-1">
