@@ -78,9 +78,9 @@ const lastUpdated = computed(() => {
 
     <!-- === 浏览态：作者栏目大气泡（含头像 + 名称 + 目录，Sprint 3 实现 TOC） === -->
     <div v-else>
-      <KunCard color="background" bordered class="p-5 flex flex-col items-center">
+      <KunCard color="background" bordered class="p-5 flex flex-col" content-class="flex flex-col items-center">
         <!-- 正方形头像小气泡（略小于父级宽度，10% 圆角，头像填满气泡） -->
-        <div class="w-5/6 max-w-[180px] aspect-square rounded-lg overflow-hidden border-2 border-default-200 mb-3 bg-default-200">
+        <div class="w-4/5 max-w-[200px] aspect-square rounded-lg overflow-hidden border-2 border-default-200 mb-3 bg-default-200">
           <img :src="AVATAR_URL" alt="撰文人" class="w-full h-full object-cover" />
         </div>
         <!-- 居中名称 -->
