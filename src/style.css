@@ -126,8 +126,8 @@ html:not(.kun-dark-mode) .app-bg {
 }
 
 /* Settings modal panel: fixed 70% opacity independent of global slider */
-#app .settings-modal-panel {
-  background: hsla(var(--background), 0.7);
+.settings-modal-panel {
+  background: hsla(var(--background), 0.7) !important;
 }
 
 /* ============================================================
