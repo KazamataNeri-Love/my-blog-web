@@ -41,7 +41,7 @@ const lastUpdated = computed(() => {
 </script>
 
 <template>
-  <aside class="min-w-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
+  <aside class="min-w-0 overflow-y-auto p-5 space-y-6">
     <!-- === 常态：站长信息气泡 === -->
     <div v-if="!isReading" class="flex flex-col items-center text-center">
       <!-- 头像（纯色背景 + 黑色边框圆形） -->
@@ -57,21 +57,23 @@ const lastUpdated = computed(() => {
         <p class="text-xs text-default-400 mt-0.5">欢迎来到被遗忘的小苑</p>
       </div>
 
-      <!-- 信息列表 -->
-      <div class="w-full mt-4 space-y-2.5">
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-default-400">文章总数</span>
-          <span class="font-semibold">{{ loading ? '...' : articleCount }}</span>
+      <!-- 信息列表气泡 -->
+      <KunCard color="background" bordered class="p-4">
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-default-400">文章总数</span>
+            <span class="font-semibold">{{ loading ? '...' : articleCount }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-default-400">建站时间</span>
+            <span class="font-semibold">{{ SITE_CREATED }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-default-400">上次更新</span>
+            <span class="font-semibold">{{ lastUpdated }}</span>
+          </div>
         </div>
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-default-400">建站时间</span>
-          <span class="font-semibold">{{ SITE_CREATED }}</span>
-        </div>
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-default-400">上次更新</span>
-          <span class="font-semibold">{{ lastUpdated }}</span>
-        </div>
-      </div>
+      </KunCard>
     </div>
 
     <!-- === 浏览态：文章信息（TOC 待 Sprint 3 实现） === -->
@@ -92,8 +94,8 @@ const lastUpdated = computed(() => {
 
     <KunDivider color="default" />
 
-    <!-- 相关链接 -->
-    <div>
+    <!-- 相关链接气泡 -->
+    <KunCard color="background" bordered class="p-4">
       <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">相关链接</p>
       <div class="space-y-1">
         <a href="https://github.com/KazamataNeri-Love/my-blog-web" target="_blank"
@@ -111,6 +113,6 @@ const lastUpdated = computed(() => {
           KunUI 文档
         </a>
       </div>
-    </div>
+    </KunCard>
   </aside>
 </template>
