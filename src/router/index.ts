@@ -3,7 +3,7 @@ import HomeView from '@/components/HomeView.vue'
 import EditorView from '@/components/EditorView.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/my-blog-web/'),
   routes: [
     {
       path: '/',
