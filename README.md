@@ -4,4 +4,4 @@
 
 写写歌曲推荐和Gal游玩随想等。
 
-网站：https://kazamataneri-love.github.io/my-blog-web/index.html
+网站：https://kazamataneri-love.github.io/my-blog-web/
