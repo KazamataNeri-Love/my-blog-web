@@ -247,8 +247,8 @@ async function save() {
         <div class="flex items-center gap-1 flex-wrap px-3 py-2 border-b border-default-200 bg-default-100/30">
           <button class="tool-btn" @click="insertMD('**', '**')"><b>B</b></button>
           <button class="tool-btn" @click="insertMD('*', '*')"><i>I</i></button>
-          <button class="tool-btn text-foreground font-bold" @click="insertMD('# ', '')">H1</button>
-          <button class="tool-btn text-foreground font-bold" @click="insertMD('## ', '')">H2</button>
+          <button class="tool-btn !text-foreground font-bold" @click="insertMD('# ', '')">H1</button>
+          <button class="tool-btn !text-foreground font-bold" @click="insertMD('## ', '')">H2</button>
           <div class="tool-sep"></div>
           <button class="tool-btn" @click="insertTable()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
