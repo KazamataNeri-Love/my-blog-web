@@ -130,6 +130,11 @@ html:not(.kun-dark-mode) .app-bg {
   background: hsla(var(--background), 0.7) !important;
 }
 
+/* Editor modals (image/file/external link): fixed 70% opacity */
+.img-modal-panel {
+  background: hsla(var(--background), 0.7) !important;
+}
+
 /* ============================================================
  * MARKDOWN BODY — 使用 KunUI 变量，自动适配亮/暗色模式
  * ============================================================ */

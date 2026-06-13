@@ -293,7 +293,7 @@ async function save() {
             variant="light"
             color="default"
             size="sm"
-            class="ml-auto"
+            class="ml-auto px-2"
             @click="toggleSplit"
           >
             <template #default>
@@ -317,7 +317,7 @@ async function save() {
 
       <!-- Right: Preview -->
       <div v-if="isSplitMode" class="flex-1 overflow-y-auto p-10 bg-background">
-        <div class="kun-prose" v-html="previewHtml"></div>
+        <div class="markdown-body" v-html="previewHtml"></div>
       </div>
     </div>
 
@@ -329,7 +329,7 @@ async function save() {
   </div>
 
   <!-- Image Upload Modal -->
-  <KunModal v-model="showImgModal" size="sm">
+  <KunModal v-model="showImgModal" size="sm" innerClassName="p-4 img-modal-panel">
     <template #default>
       <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">插入图片</h3>
       <div class="w-full h-48 bg-default-100/50 flex items-center justify-center border border-dashed border-default-200 rounded-kun-md mb-4">
@@ -348,7 +348,7 @@ async function save() {
   </KunModal>
 
   <!-- File Browser Modal -->
-  <KunModal v-model="showFileModal" size="sm">
+  <KunModal v-model="showFileModal" size="sm" innerClassName="p-4 img-modal-panel">
     <template #default>
       <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">选择仓库文件</h3>
       <div class="text-xs text-default-400 mb-1">{{ fileListPath || '/' }}</div>
@@ -367,7 +367,7 @@ async function save() {
   </KunModal>
 
   <!-- External Link Modal -->
-  <KunModal v-model="showExtModal" size="sm">
+  <KunModal v-model="showExtModal" size="sm" innerClassName="p-4 img-modal-panel">
     <template #default>
       <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">插入外部/Release 资源</h3>
       <label class="modal-label">资源显示名称:</label>
