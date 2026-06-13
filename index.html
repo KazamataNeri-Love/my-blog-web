@@ -8,109 +8,500 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
+        /* ============================================================
+         * KunUI Design Tokens (Dark Mode) — adapted from @kungal/ui-tokens
+         * ============================================================ */
         :root {
-            /* KunUI-inspired color system (dark mode only) */
-            --bg-sidebar: hsl(240, 6%, 10%);
-            --bg-main: hsl(0, 0%, 0%);
-            --text-main: hsl(210, 6%, 93%);
-            --text-sub: hsl(240, 5%, 65%);
-            --accent-color: hsl(212, 92%, 58%);
-            --hover-bg: hsl(240, 5%, 16%);
-            --border-color: hsl(240, 5%, 26%);
-            --border-subtle: hsla(240, 5%, 65%, 0.2);
-            --blockquote-border: hsl(212, 92%, 58%);
-            --surface-card: hsl(240, 4%, 16%);
-            --surface-elevated: hsl(240, 5%, 26%);
-            --radius-sm: 0.375rem;
-            --radius-md: 0.75rem;
-            --radius-lg: 1rem;
-            --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-            --dur-fast: 150ms;
-            --dur-base: 250ms;
+            --bg-main:         hsl(0, 0%, 0%);
+            --bg-surface:      hsl(240, 4%, 16%);
+            --bg-elevated:     hsl(240, 5%, 26%);
+            --bg-sidebar:      hsl(240, 6%, 10%);
+            --text-main:       hsl(210, 6%, 93%);
+            --text-sub:        hsl(240, 5%, 65%);
+            --text-muted:      hsl(240, 5%, 46%);
+            --accent:          hsl(212, 92%, 58%);
+            --border:          hsl(240, 5%, 26%);
+            --border-subtle:   hsla(240, 5%, 65%, 0.2);
+            --success:         hsl(146, 79%, 44%);
+            --radius-sm:       0.375rem;
+            --radius-md:       0.75rem;
+            --radius-lg:       1rem;
+            --ease:            cubic-bezier(0.2, 0, 0, 1);
+            --dur-fast:        150ms;
+            --dur-base:        250ms;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            background-color: var(--bg-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica,
+                         Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: var(--bg-main);
             color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
         input, button, select, textarea { font-family: inherit; }
 
-        /* --- 侧边栏 --- */
-        .sidebar {
-            width: 300px;
-            background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
+        a { text-decoration: none; color: inherit; }
+
+        /* ============================================================
+         * LAYOUT — KunUI docs structure
+         * ============================================================ */
+        .app-wrapper {
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Top Bar (sticky, glass) --- */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            background: hsla(0, 0%, 0%, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             flex-shrink: 0;
         }
 
-        .search-container { padding: 15px; border-bottom: 1px solid var(--border-color); }
-        .search-box {
-            background: var(--surface-card); border: 1px solid var(--border-color); border-radius: var(--radius-md);
-            display: flex; align-items: center; padding: 8px 12px;
-            transition: border-color var(--dur-fast) var(--ease-standard);
-        }
-        .search-box:focus-within { border-color: var(--accent-color); }
-        .search-box i { color: var(--text-sub); font-size: 14px; }
-        .search-box input {
-            background: transparent; border: none; color: var(--text-main);
-            margin-left: 8px; width: 100%; outline: none; font-size: 13px;
-        }
-
-        .nav-list { flex: 1; overflow-y: auto; padding: 8px 0; list-style: none; }
-        
-        .nav-item {
-            padding: 8px 20px 8px 30px; cursor: pointer; display: flex;
-            align-items: center; text-decoration: none; color: var(--text-sub);
-            font-size: 13px; transition: all var(--dur-fast) var(--ease-standard);
-            border-right: 3px solid transparent;
-        }
-        .nav-item:hover { background-color: var(--hover-bg); color: var(--text-main); }
-        .nav-item.active {
-            color: var(--accent-color); background-color: hsla(212, 92%, 58%, 0.1);
-            border-right: 3px solid var(--accent-color);
-        }
-        .nav-item i { margin-right: 10px; font-size: 14px; width: 16px; text-align: center; }
-
-        /* --- 多级目录与排序栏样式 --- */
-        .nested-ul { display: none; padding-left: 0; list-style: none; }
-        .folder-open > .nested-ul { display: block; }
-        .folder-icon { transition: transform var(--dur-fast) var(--ease-standard); }
-        .folder-open > .nav-item > .folder-icon { transform: rotate(90deg); color: var(--accent-color); }
-        
-        /* 缩进 */
-        .nav-item.level-1 { padding-left: 30px; }
-        .nav-item.level-2 { padding-left: 45px; }
-        .nav-item.level-3 { padding-left: 60px; }
-        .nav-item.level-4 { padding-left: 75px; }
-
-        /* 排序/分组标题栏 */
-        .nav-group-title {
-            padding: 16px 20px 6px; 
-            font-size: 11px; 
-            color: var(--text-sub);
-            font-weight: 600; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px;
-            display: flex; 
-            justify-content: space-between; 
+        .top-bar-brand {
+            display: flex;
             align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .top-bar-brand .accent { color: var(--accent); }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-bar-link {
+            font-size: 13px;
+            color: var(--text-sub);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            transition: all var(--dur-fast) var(--ease);
+        }
+        .top-bar-link:hover {
+            color: var(--text-main);
+            background: var(--bg-elevated);
+        }
+
+        /* --- Layout Row --- */
+        .layout-row {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar (sticky, w-60, scrollable) --- */
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 57px;
+            height: calc(100vh - 57px);
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+        .sidebar { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+        .sidebar-section {
+            padding: 12px 12px 4px;
+        }
+        .sidebar-section-title {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding: 0 8px;
+        }
+
+        /* Search */
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            transition: border-color var(--dur-fast) var(--ease);
+        }
+        .search-box:focus-within { border-color: var(--accent); }
+        .search-box i { color: var(--text-muted); font-size: 13px; }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            width: 100%;
+            outline: none;
+            font-size: 13px;
+        }
+        .search-box input::placeholder { color: var(--text-muted); }
+
+        /* Sidebar Nav */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            list-style: none;
+            padding: 0 4px;
+        }
+        .sidebar-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            font-size: 13px;
+            color: var(--text-sub);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease);
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar-nav-item:hover {
+            background: var(--bg-surface);
+            color: var(--text-main);
+        }
+        .sidebar-nav-item.active {
+            color: var(--accent);
+            background: hsla(212, 92%, 58%, 0.1);
+            font-weight: 500;
+        }
+        .sidebar-nav-item i { width: 16px; text-align: center; font-size: 13px; }
+
+        /* File tree in sidebar */
+        .file-tree { list-style: none; padding: 0; }
+        .file-tree .nested-ul { display: none; padding-left: 0; list-style: none; }
+        .file-tree .folder-open > .nested-ul { display: block; }
+
+        .file-tree .folder-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px 5px 14px;
+            font-size: 13px;
+            color: var(--text-sub);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease);
+        }
+        .file-tree .folder-item:hover { background: var(--bg-surface); color: var(--text-main); }
+        .file-tree .folder-item .folder-arrow {
+            font-size: 10px;
+            width: 10px;
+            transition: transform var(--dur-fast) var(--ease);
+        }
+        .file-tree .folder-open > .folder-item .folder-arrow { transform: rotate(90deg); color: var(--accent); }
+        .file-tree .folder-item .folder-icon { color: hsl(37, 74%, 44%); font-size: 12px; }
+
+        .file-tree .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px 5px 28px;
+            font-size: 13px;
+            color: var(--text-sub);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .file-tree .file-item:hover { background: var(--bg-surface); color: var(--text-main); }
+        .file-tree .file-item.active { color: var(--accent); background: hsla(212, 92%, 58%, 0.1); font-weight: 500; }
+        .file-tree .file-item i { font-size: 12px; width: 14px; text-align: center; flex-shrink: 0; }
+
+        /* Sort controls */
+        .sort-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 14px 4px;
             position: relative;
         }
-        
-        .sort-btn {
-            cursor: pointer; padding: 4px 6px; border-radius: var(--radius-sm);
-            color: var(--text-sub); transition: all var(--dur-fast) var(--ease-standard);
+        .sort-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
         }
-        .sort-btn:hover { background-color: var(--surface-elevated); color: var(--text-main); }
+        .sort-trigger {
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-size: 12px;
+            transition: all var(--dur-fast) var(--ease);
+        }
+        .sort-trigger:hover { background: var(--bg-elevated); color: var(--text-main); }
+
+        .sort-popup {
+            position: absolute;
+            right: 8px;
+            top: 32px;
+            min-width: 140px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px hsla(0, 0%, 0%, 0.5);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+        }
+        .sort-popup.show { display: block; }
+        .sort-option {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background var(--dur-fast) var(--ease);
+        }
+        .sort-option:hover { background: hsla(240, 5%, 65%, 0.1); }
+        .sort-option.active { color: var(--accent); font-weight: 500; }
+        .sort-option .check-icon { opacity: 0; font-size: 10px; }
+        .sort-option.active .check-icon { opacity: 1; }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            padding: 10px 16px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        /* ============================================================
+         * MAIN CONTENT — KunUI docs content area
+         * ============================================================ */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 48px;
+            min-width: 0;
+        }
+        .main-content::-webkit-scrollbar { width: 6px; }
+        .main-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+        .main-content { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+
+        /* --- Article Header (KunHeader-inspired) --- */
+        .doc-header {
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .doc-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: hsl(0, 0%, 100%);
+            line-height: 1.3;
+            margin-right: 20px;
+        }
+        .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-edit {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-sub);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease);
+            text-decoration: none;
+        }
+        .btn-edit:hover { background: var(--bg-elevated); color: var(--text-main); border-color: var(--text-muted); }
+
+        .doc-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        /* --- Empty state --- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state-icon { font-size: 48px; opacity: 0.15; margin-bottom: 16px; }
+        .empty-state h2 { font-size: 18px; font-weight: 500; color: var(--text-sub); margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; }
+
+        /* ============================================================
+         * MARKDOWN PROSE — KunUI-inspired content styling
+         * ============================================================ */
+        .markdown-body {
+            line-height: 1.75;
+            color: var(--text-main);
+            font-size: 14px;
+            max-width: 100%;
+        }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            color: hsl(0, 0%, 100%);
+            margin-top: 28px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .markdown-body h1 { font-size: 1.7em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.35em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+        .markdown-body h3 { font-size: 1.1em; }
+        .markdown-body a { color: var(--accent); text-decoration: none; }
+        .markdown-body a:hover { text-decoration: underline; }
+        .markdown-body p { margin-bottom: 12px; }
+        .markdown-body blockquote {
+            padding: 10px 16px;
+            color: var(--text-sub);
+            border-left: 3px solid var(--accent);
+            margin: 12px 0;
+            background: var(--bg-surface);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        }
+        .markdown-body code {
+            padding: 2px 6px;
+            font-size: 0.88em;
+            background: hsla(210, 6%, 93%, 0.08);
+            border-radius: var(--radius-sm);
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin: 12px 0;
+        }
+        .markdown-body pre code { background: transparent; padding: 0; }
+        .markdown-body table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+        }
+        .markdown-body th, .markdown-body td { padding: 7px 12px; border: 1px solid var(--border); }
+        .markdown-body th { background: var(--bg-surface); font-weight: 600; }
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            display: block;
+            margin: 12px 0;
+        }
+        .markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+        .markdown-body ul, .markdown-body ol { padding-left: 20px; margin-bottom: 12px; }
+        .markdown-body li { margin-bottom: 4px; }
+
+        .img-wrap { position: relative; display: inline-block; }
+        .img-size-badge {
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
+            background: hsla(0, 0%, 0%, 0.65);
+            color: hsl(0, 0%, 100%);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            display: none;
+            pointer-events: none;
+        }
+        .img-wrap:hover .img-size-badge { display: block; }
+
+        /* --- File Card (KunCard-inspired) --- */
+        .file-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin: 14px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            transition: border-color var(--dur-fast) var(--ease);
+        }
+        .file-card:hover { border-color: var(--border-subtle); }
+        .file-name { font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-info { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .file-note { font-size: 11px; color: var(--text-sub); background: var(--bg-elevated); padding: 2px 7px; border-radius: var(--radius-sm); }
+        .file-download {
+            font-size: 12px;
+            padding: 4px 10px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all var(--dur-fast) var(--ease);
+        }
+        .file-download:hover { background: var(--accent); color: hsl(0, 0%, 100%); }
+
+        /* ============================================================
+         * RESPONSIVE
+         * ============================================================ */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+                position: fixed;
+                top: 57px;
+                left: 0;
+                height: calc(100vh - 57px);
+                z-index: 40;
+                box-shadow: 0 8px 32px hsla(0, 0%, 0%, 0.5);
+                width: 260px;
+            }
+            .sidebar.open { display: flex; }
+            .main-content { padding: 20px; }
+        }
         
         .sort-popup {
             position: absolute; right: 10px; top: 35px;
@@ -228,54 +619,109 @@
 </head>
 <body>
 
-    <!-- 侧边栏 -->
-    <aside class="sidebar" id="sidebar">
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="search-input" placeholder="搜索文章...">
+    <div class="app-wrapper">
+
+        <!-- ============ TOP BAR (KunUI docs-style) ============ -->
+        <header class="top-bar">
+            <div class="top-bar-brand">
+                <span>📚</span>
+                <span>我的<span class="accent">知识库</span></span>
             </div>
-        </div>
+            <div class="top-bar-actions">
+                <a href="editor.html" target="_blank" class="top-bar-link">
+                    <i class="fa-solid fa-pen"></i> 新建
+                </a>
+                <a href="https://github.com/KazamataNeri-Love/my-blog-web" target="_blank" class="top-bar-link">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+            </div>
+        </header>
 
-        <ul class="nav-list" id="sidebar-list">
-            <li style="text-align:center; color:#666; padding:20px;">
-                <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
-            </li>
-        </ul>
+        <!-- ============ LAYOUT ROW ============ -->
+        <div class="layout-row">
 
-        <div class="sidebar-footer">
-            <span><i class="fa-solid fa-database"></i> GitHub Tree</span>
-            <span id="version-tag">v3.0 Tree</span>
-        </div>
-    </aside>
+            <!-- ============ SIDEBAR (KunUI docs-style) ============ -->
+            <aside class="sidebar" id="sidebar">
 
-    <!-- 主内容区 -->
-    <main class="main-content">
-        <div class="doc-header" id="header-area" style="display:none;">
-            <div class="header-top">
-                <h1 class="doc-title" id="article-title">无标题</h1>
-                <div class="actions">
-                    <a id="btn-edit" href="#" class="btn" target="_blank"><i class="fa-solid fa-pen"></i> 编辑</a>
+                <div class="sidebar-section">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="搜索文章...">
+                    </div>
                 </div>
-            </div>
-            
-            <div class="doc-meta">
-                <span id="article-date"><i class="fa-regular fa-calendar"></i> -</span>
-                <span><i class="fa-regular fa-user"></i> Admin</span>
-                <span id="article-file" style="opacity:0.6; font-size:10px;">filename.md</span>
-            </div>
-        </div>
 
-        <div id="empty-state" class="markdown-body" style="margin-top: 50px; text-align: center; color: var(--text-sub);">
-            <div style="font-size: 60px; margin-bottom: 20px; opacity: 0.2;">
-                <i class="fa-regular fa-compass"></i>
-            </div>
-            <h2>> 欢迎来到知识库 <</h2>
-            <p>点击左侧目录查看文章，或者搜索。</p>
-        </div>
+                <div class="sidebar-section">
+                    <p class="sidebar-section-title">导航</p>
+                    <ul class="sidebar-nav" id="sidebar-nav-static">
+                        <li>
+                            <button class="sidebar-nav-item" onclick="showHome()">
+                                <i class="fa-solid fa-house"></i> 首页
+                            </button>
+                        </li>
+                        <li>
+                            <a href="editor.html" target="_blank" class="sidebar-nav-item">
+                                <i class="fa-solid fa-plus" style="color: var(--success);"></i> 新建贴文
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-        <div id="article-body" class="markdown-body"></div>
-    </main>
+                <div class="sort-wrapper">
+                    <span class="sort-label"><i class="fa-regular fa-file-lines"></i> 贴文列表</span>
+                    <div class="sort-trigger" onclick="event.stopPropagation(); toggleSortMenu()" title="排序方式">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i>
+                    </div>
+                    <div id="sort-menu" class="sort-popup">
+                        <div class="sort-option ${currentSortMode === 'date' ? 'active' : ''}" onclick="applySort('date')">
+                            <span>📅 按时间</span> <i class="fa-solid fa-check check-icon"></i>
+                        </div>
+                        <div class="sort-option ${currentSortMode === 'title' ? 'active' : ''}" onclick="applySort('title')">
+                            <span>Aa 按标题</span> <i class="fa-solid fa-check check-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="file-tree" id="sidebar-list">
+                    <li style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px;">
+                        <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
+                    </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <span><i class="fa-solid fa-database"></i> GitHub Tree</span>
+                    <span id="version-tag">v3.0</span>
+                </div>
+            </aside>
+
+            <!-- ============ MAIN CONTENT (KunUI docs-style) ============ -->
+            <main class="main-content">
+                <div class="doc-header" id="header-area" style="display:none;">
+                    <div class="header-top">
+                        <h1 class="doc-title" id="article-title">无标题</h1>
+                        <div class="header-actions">
+                            <a id="btn-edit" href="#" class="btn-edit" target="_blank">
+                                <i class="fa-solid fa-pen"></i> 编辑
+                            </a>
+                        </div>
+                    </div>
+                    <div class="doc-meta">
+                        <span id="article-date"><i class="fa-regular fa-calendar"></i> -</span>
+                        <span><i class="fa-regular fa-user"></i> Admin</span>
+                        <span id="article-file" style="opacity:0.6;">filename.md</span>
+                    </div>
+                </div>
+
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-state-icon"><i class="fa-regular fa-compass"></i></div>
+                    <h2>> 欢迎来到知识库 <</h2>
+                    <p>点击左侧目录查看文章，或者搜索。</p>
+                </div>
+
+                <div id="article-body" class="markdown-body"></div>
+            </main>
+
+        </div><!-- /layout-row -->
+    </div><!-- /app-wrapper -->
 
     <script type="module">
         import { fetchFileTree, getPost, downloadFile } from "./js/api.js";
@@ -318,7 +764,7 @@
                 renderSidebarTree(tree);
             } catch (e) {
                 console.error(e);
-                sidebarList.innerHTML = `<li style="color:#ff6b6b; padding:15px">⚠️ 加载失败: ${e.message}</li>`;
+                sidebarList.innerHTML = `<li style="color:hsl(339, 90%, 61%); padding:15px">❌ 加载失败: ${e.message}</li>`;
             }
         }
 
@@ -345,57 +791,11 @@
             return root;
         }
 
-        // --- 核心：递归渲染树 (带功能区) ---
+        // --- 核心：递归渲染树 (KunUI nav-style) ---
         function renderSidebarTree(treeData) {
             sidebarList.innerHTML = "";
 
-            // 1. 固定头部
-            const newPostLi = document.createElement("li");
-            newPostLi.innerHTML = `
-                <a href="editor.html" target="_blank" class="nav-item" style="color: var(--text-sub);">
-                    <i class="fa-solid fa-plus" style="color: #2da44e;"></i>
-                    <span style="font-weight:bold; color: var(--text-main);">新建贴文</span>
-                </a>
-            `;
-            sidebarList.appendChild(newPostLi);
-
-            const homeLi = document.createElement("li");
-            homeLi.innerHTML = `
-                <div class="nav-item" id="nav-home" onclick="showHome()">
-                    <i class="fa-solid fa-house"></i>
-                    <span>首页 / 简介</span>
-                </div>
-            `;
-            sidebarList.appendChild(homeLi);
-
-            // 分隔
-            const separator = document.createElement("li");
-            separator.style.borderBottom = "1px solid var(--border-color)";
-            separator.style.margin = "8px 0";
-            sidebarList.appendChild(separator);
-
-            // 2. 贴文列表标题 + 排序按钮
-            const groupTitle = document.createElement("li");
-            groupTitle.className = "nav-group-title";
-            groupTitle.innerHTML = `
-                <span><i class="fa-regular fa-folder-open"></i> 贴文列表</span>
-                
-                <div class="sort-btn" onclick="event.stopPropagation(); toggleSortMenu()" title="排序方式">
-                    <i class="fa-solid fa-arrow-down-short-wide"></i>
-                </div>
-
-                <div id="sort-menu" class="sort-popup">
-                    <div class="sort-option ${currentSortMode === 'date' ? 'active' : ''}" onclick="applySort('date')">
-                        <span>📅 按时间</span> <i class="fa-solid fa-check check-icon"></i>
-                    </div>
-                    <div class="sort-option ${currentSortMode === 'title' ? 'active' : ''}" onclick="applySort('title')">
-                        <span>Aa 按标题</span> <i class="fa-solid fa-check check-icon"></i>
-                    </div>
-                </div>
-            `;
-            sidebarList.appendChild(groupTitle);
-
-            // 3. 递归目录
+            // 递归目录
             const container = document.createDocumentFragment();
             createTreeNodes(treeData, container, 1);
             sidebarList.appendChild(container);
@@ -416,10 +816,8 @@
                 if (!isFolderA && isFolderB) return 1;
 
                 if (currentSortMode === 'date') {
-                    // 按日期倒序 (假设文件名含日期)
                     return b.localeCompare(a, 'zh-CN');
                 } else {
-                    // 按标题正序 (忽略日期前缀)
                     const nameA = a.replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                     const nameB = b.replace(/^\d{4}-\d{1,2}-\d{1,2}-/, "");
                     return nameA.localeCompare(nameB, 'zh-CN');
@@ -435,9 +833,9 @@
                 
                 if (isFolder) {
                     li.innerHTML = `
-                        <div class="nav-item level-${level}" onclick="toggleFolder(this)">
-                            <i class="fa-solid fa-caret-right folder-icon" style="width:10px; margin-right:5px;"></i>
-                            <i class="fa-regular fa-folder" style="color:#dcb67a;"></i>
+                        <div class="folder-item" onclick="toggleFolder(this)">
+                            <i class="fa-solid fa-caret-right folder-arrow"></i>
+                            <i class="fa-regular fa-folder folder-icon"></i>
                             <span>${displayName}</span>
                         </div>
                     `;
@@ -447,9 +845,9 @@
                     li.appendChild(ul);
                 } else {
                     li.innerHTML = `
-                        <div class="nav-item file-item level-${level}" data-path="${node.path}" onclick="handlePostClick('${node.path}')">
+                        <div class="file-item" data-path="${node.path}" onclick="handlePostClick('${node.path}')">
                             <i class="fa-regular fa-file-lines"></i>
-                            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</span>
+                            <span>${displayName}</span>
                         </div>
                     `;
                 }
@@ -504,7 +902,7 @@
         async function loadContent(path) {
             headerArea.style.display = "none";
             emptyState.style.display = "none";
-            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:#666"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
+            articleBody.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-muted)"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
             
             const newUrl = `${window.location.pathname}?f=${encodeURIComponent(path)}`;
             window.history.pushState({ path: newUrl }, '', newUrl);
@@ -608,23 +1006,24 @@
 
             } catch (e) {
                 console.error(e);
-                articleBody.innerHTML = `<div style="color:#ff6b6b; padding:20px;">❌ 加载失败: ${e.message}</div>`;
+                articleBody.innerHTML = `<div style="color:hsl(339, 90%, 61%); padding:20px;">❌ 加载失败: ${e.message}</div>`;
             }
         }
 
         function updateActiveState() {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav-item.active').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
             const params = new URLSearchParams(location.search);
             const currentPath = params.get("f");
 
             if (!currentPath) {
-                const homeBtn = document.getElementById("nav-home");
+                const homeBtn = document.querySelector('.sidebar-nav-item');
                 if(homeBtn) homeBtn.classList.add("active");
             } else {
                 const activeItem = document.querySelector(`.file-item[data-path="${decodeURIComponent(currentPath)}"]`);
                 if(activeItem) {
                     activeItem.classList.add("active");
-                    // 自动展开
+                    // 自动展开父文件夹
                     let parent = activeItem.parentElement.parentElement;
                     while (parent && parent.classList.contains('nested-ul')) {
                         parent.parentElement.classList.add('folder-open');
@@ -649,7 +1048,7 @@
             );
 
             if (matched.length === 0) {
-                sidebarList.innerHTML = "<li style='padding:15px; color:#666'>无搜索结果</li>";
+                sidebarList.innerHTML = "<li style='padding:15px; color:var(--text-muted)'>无搜索结果</li>";
                 return;
             }
 
@@ -657,9 +1056,9 @@
                 const li = document.createElement("li");
                 const displayName = file.path.replace("posts/", "").replace(".md", "");
                 li.innerHTML = `
-                    <div class="nav-item file-item" data-path="${file.path}" onclick="handlePostClick('${file.path}')">
+                    <div class="file-item" data-path="${file.path}" onclick="handlePostClick('${file.path}')">
                         <i class="fa-regular fa-file-lines"></i>
-                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${displayName}</span>
+                        <span>${displayName}</span>
                     </div>
                 `;
                 sidebarList.appendChild(li);
