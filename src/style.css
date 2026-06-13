@@ -105,3 +105,105 @@ html {
   display: block;
 }
 
+/* ============================================================
+ * MARKDOWN BODY — 旧版样式（还原纯 HTML 时代的显示外观）
+ * ============================================================ */
+.markdown-body {
+  line-height: 1.7;
+  color: hsl(210, 6%, 93%);
+  max-width: none;
+  width: 100%;
+  font-size: 14px;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  color: hsl(0, 0%, 100%);
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+.markdown-body h1 {
+  font-size: 2em;
+  border-bottom: 1px solid hsl(240, 5%, 26%);
+  padding-bottom: 0.3em;
+}
+.markdown-body h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid hsl(240, 5%, 26%);
+  padding-bottom: 0.3em;
+}
+.markdown-body a {
+  color: hsl(212, 92%, 58%);
+  text-decoration: none;
+}
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+.markdown-body blockquote {
+  padding: 10px 15px;
+  color: hsl(240, 5%, 65%);
+  border-left: 0.25em solid hsl(212, 92%, 58%);
+  margin: 0 0 16px 0;
+  background: hsl(240, 4%, 16%);
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+.markdown-body code {
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  background-color: hsla(210, 6%, 93%, 0.1);
+  border-radius: 0.375rem;
+  font-family: inherit;
+}
+.markdown-body pre {
+  padding: 16px;
+  overflow: auto;
+  background-color: hsl(240, 4%, 16%);
+  border-radius: 0.75rem;
+  border: 1px solid hsl(240, 5%, 26%);
+}
+.markdown-body pre code {
+  background-color: transparent;
+  padding: 0;
+}
+.markdown-body table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 16px;
+  display: block;
+  overflow: auto;
+}
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid hsl(240, 5%, 26%);
+}
+.markdown-body table th {
+  background-color: hsl(240, 4%, 16%);
+}
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  background-color: hsl(0, 0%, 100%);
+  display: block;
+  margin: 12px 0;
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid hsl(240, 5%, 26%);
+  margin: 20px 0;
+}
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+.markdown-body li {
+  margin-bottom: 4px;
+}
+.markdown-body p {
+  margin-bottom: 12px;
+}
+

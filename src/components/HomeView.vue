@@ -143,10 +143,10 @@ function editArticle() {
     <p class="text-sm">点击左侧目录查看文章，或者搜索。</p>
   </div>
 
-  <!-- Article Content with KunContent -->
-  <KunContent
+  <!-- Article Content (旧版 markdown-body 样式) -->
+  <div
     v-if="articleHtml && !loading"
-    :content="articleHtml"
-    class="flex flex-col gap-2"
-  />
+    class="markdown-body"
+    v-html="articleHtml"
+  ></div>
 </template>
