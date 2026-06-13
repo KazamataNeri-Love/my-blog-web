@@ -229,7 +229,7 @@ async function save() {
           @keydown="handleKeydown"
         />
       </div>
-      <KunButton variant="solid" color="success" size="sm" @click="save">
+      <KunButton variant="solid" color="success" size="sm" class="px-4" @click="save">
         <template #default>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
