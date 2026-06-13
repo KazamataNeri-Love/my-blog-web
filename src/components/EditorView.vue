@@ -193,7 +193,7 @@ async function save() {
 
   try {
     let fullPath = inputVal
-    if (!fullPath.startsWith('posts/')) fullPath = 'posts/' + fullPath
+    if (!fullPath.startsWith('_legacy/posts/')) fullPath = '_legacy/posts/' + fullPath
     if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md'
     await savePost(fullPath, body, token)
     alert('保存成功!')

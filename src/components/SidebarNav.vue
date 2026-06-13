@@ -69,7 +69,7 @@ function isActive(path: string | null): boolean {
 
 <template>
   <aside
-    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] w-56 shrink-0 flex-col border-r bg-default-100/20"
+    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] flex-[1] min-w-0 flex-col border-r bg-default-100/20"
     @click.stop
   >
     <!-- Search -->
@@ -81,7 +81,7 @@ function isActive(path: string | null): boolean {
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="搜索文章..."
+          placeholder="搜索文章"
           class="bg-transparent w-full outline-none text-sm text-foreground placeholder:text-default-400"
         />
       </div>
@@ -177,7 +177,7 @@ function isActive(path: string | null): boolean {
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
-              <span class="truncate text-xs">{{ file.path.replace('posts/', '').replace('.md', '') }}</span>
+              <span class="truncate text-xs">{{ file.path.replace('_legacy/posts/', '').replace('.md', '') }}</span>
             </div>
             <div v-if="filteredFiles.length === 0" class="px-3 py-4 text-default-400 text-xs text-center">无搜索结果</div>
           </template>

@@ -29,27 +29,22 @@ function openFile(path: string) {
 
 function displayName(path: string): string {
   return path
-    .replace('posts/', '')
+    .replace('_legacy/posts/', '')
     .replace('.md', '')
     .replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
 }
 
 function extractCategory(path: string): string {
-  const parts = path.replace('posts/', '').split('/')
+  const parts = path.replace('_legacy/posts/', '').split('/')
   return parts.length > 1 ? parts[0] : '未分类'
 }
 </script>
 
 <template>
-  <aside class="w-72 shrink-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
+  <aside class="flex-[1] min-w-0 shrink-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
     <!-- Stats Card -->
     <div>
-      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase flex items-center gap-1.5">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-        统计
-      </p>
+      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">统计</p>
       <div class="space-y-2">
         <div class="flex items-center justify-between text-sm">
           <span class="text-default-400">文章总数</span>
@@ -66,13 +61,7 @@ function extractCategory(path: string): string {
 
     <!-- Recent Activity -->
     <div>
-      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase flex items-center gap-1.5">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        最新动态
-      </p>
+      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">最新动态</p>
 
       <!-- Loading -->
       <div v-if="loading" class="flex justify-center py-6 text-default-400">
@@ -112,13 +101,7 @@ function extractCategory(path: string): string {
 
     <!-- Quick Links -->
     <div>
-      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase flex items-center gap-1.5">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-          <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-        </svg>
-        相关链接
-      </p>
+      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">相关链接</p>
       <div class="space-y-1">
         <a href="https://github.com/KazamataNeri-Love/my-blog-web" target="_blank"
           class="flex items-center gap-2 px-2.5 py-1.5 text-sm rounded-md text-default-500 hover:bg-default-100 hover:text-foreground transition-colors">

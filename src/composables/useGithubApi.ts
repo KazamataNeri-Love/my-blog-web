@@ -15,7 +15,7 @@ export async function fetchFileTree(): Promise<GitTreeItem[]> {
   )
   if (!res.ok) return []
   const data = await res.json()
-  return data.tree.filter((item: any) => item.path.startsWith('posts/'))
+  return data.tree.filter((item: any) => item.path.startsWith('_legacy/posts/'))
 }
 
 /** Fetch markdown file content from raw URL */
@@ -143,7 +143,7 @@ export function buildTree(files: GitTreeItem[]): TreeNode {
     if (file.type !== 'blob' && file.type !== 'tree') return
     if (!file.path.endsWith('.md') && file.type === 'blob') return
 
-    const parts = file.path.replace(/^posts\//, '').split('/')
+    const parts = file.path.replace(/^_legacy\/posts\//, '').split('/')
     let current = root
     parts.forEach((part, index) => {
       if (!current.children[part]) {

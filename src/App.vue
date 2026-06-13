@@ -26,7 +26,6 @@ function goHome() {
       class="border-default-200 bg-background/80 z-kun-sticky sticky top-0 flex items-center justify-between border-b px-5 py-3 backdrop-blur"
     >
       <div class="flex cursor-pointer items-center gap-2" @click="goHome">
-        <span class="text-lg"></span>
         <span class="text-lg font-bold">SeriousDucKing的<span class="text-primary">杂谈小窝</span></span>
       </div>
 
@@ -72,18 +71,18 @@ function goHome() {
 
     <!-- Layout: forum-style three columns -->
     <div class="mx-auto flex max-w-7xl" style="height: calc(100vh - 57px);">
-      <!-- Left Sidebar (forum nav style) -->
+      <!-- Left Sidebar: 1/6 -->
       <SidebarNav
         :class="[sidebarOpen ? 'flex' : '', 'hidden lg:flex']"
         @close-sidebar="sidebarOpen = false"
       />
 
-      <!-- Main content -->
-      <main class="min-w-0 flex-1 overflow-y-auto px-5 py-6">
+      <!-- Main content: 4/6 -->
+      <main class="min-w-0 flex-[4] overflow-y-auto px-5 py-6">
         <router-view />
       </main>
 
-      <!-- Right Sidebar (recent activity) -->
+      <!-- Right Sidebar: 1/6 -->
       <RightSidebar class="hidden xl:block" />
     </div>
   </div>
