@@ -76,20 +76,21 @@ const lastUpdated = computed(() => {
       </KunCard>
     </div>
 
-    <!-- === 浏览态：文章信息（TOC 待 Sprint 3 实现） === -->
-    <div v-else class="flex flex-col items-center text-center gap-4">
-      <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-6 px-4 border border-default-200">
-        <div class="w-16 h-16 rounded-kun-lg overflow-hidden bg-default-200 flex items-center justify-center mb-3">
+    <!-- === 浏览态：作者栏目大气泡（含头像 + 名称 + 目录，Sprint 3 实现 TOC） === -->
+    <div v-else>
+      <KunCard color="background" bordered class="p-5 flex flex-col items-center">
+        <!-- 正方形头像小气泡（略小于父级宽度，10% 圆角，头像填满气泡） -->
+        <div class="w-5/6 max-w-[180px] aspect-square rounded-lg overflow-hidden border-2 border-default-200 -mt-9 mb-3 bg-default-200">
           <img :src="AVATAR_URL" alt="撰文人" class="w-full h-full object-cover" />
         </div>
-        <p class="text-sm text-primary font-medium">霎晴</p>
-      </div>
-
-      <!-- 文章目录（占位，Sprint 3 实现） -->
-      <div class="w-full mt-4">
-        <p class="text-default-400 text-xs font-semibold tracking-wide uppercase mb-2 text-left">文章目录</p>
-        <p class="text-default-400 text-xs text-left">加载中…</p>
-      </div>
+        <!-- 居中名称 -->
+        <p class="text-sm text-primary font-medium mb-4">霎晴</p>
+        <!-- 左对齐文章目录 -->
+        <div class="w-full">
+          <p class="text-default-400 text-xs font-semibold tracking-wide uppercase mb-2">文章目录</p>
+          <p class="text-default-400 text-xs">加载中…</p>
+        </div>
+      </KunCard>
     </div>
 
     <!-- 相关链接气泡 -->
