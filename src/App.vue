@@ -134,7 +134,7 @@ const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-b
     </div>
 
     <!-- 设置面板模态框 -->
-    <KunModal v-model="showSettings" size="full" :is-dismissable="false" innerClassName="[width:35vw] [height:35vh] min-w-[400px] min-h-[300px] p-5 [--kun-global-opacity:0.6]">
+    <KunModal v-model="showSettings" size="full" :is-dismissable="false" innerClassName="[width:35vw] [height:35vh] min-w-[400px] min-h-[300px] p-5">
       <template #default>
         <div class="relative h-full flex flex-col">
           <!-- 右上角关闭 -->
@@ -180,12 +180,12 @@ const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-b
               </div>
             </div>
           </div>
-          <!-- 右侧 1/3：可爱图片 -->
-          <div class="flex-[1] min-h-0">
+          <!-- 右侧 1/3：可爱图片（撑满上下，显示完全） -->
+          <div class="flex-[1] flex flex-col">
             <img
               :src="CUTE_IMAGE_URL"
               alt="cute"
-              class="w-full h-full object-cover rounded-kun-md"
+              class="w-full h-full object-contain rounded-kun-md"
             />
           </div>
         </div>
