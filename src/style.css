@@ -125,6 +125,11 @@ html:not(.kun-dark-mode) .app-bg {
   display: block;
 }
 
+/* Settings modal panel: fixed 70% opacity independent of global slider */
+#app .settings-modal-panel {
+  background: hsla(var(--background), 0.7);
+}
+
 /* ============================================================
  * MARKDOWN BODY — 使用 KunUI 变量，自动适配亮/暗色模式
  * ============================================================ */
