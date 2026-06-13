@@ -46,7 +46,7 @@ const lastUpdated = computed(() => {
     <div v-if="!isReading" class="flex flex-col items-center text-center">
       <!-- 头像（纯色背景 + 黑色边框圆形） -->
       <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-8 px-4 border border-default-200">
-        <div class="w-[100px] h-[100px] rounded-full border-[3px] border-default-900 overflow-hidden bg-default-200 flex items-center justify-center mb-3">
+        <div class="w-28 h-28 lg:w-32 lg:h-32 rounded-full border-[3px] border-default-900 overflow-hidden bg-default-200 flex items-center justify-center mb-3">
           <img
             :src="AVATAR_URL"
             alt="站长"
