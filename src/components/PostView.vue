@@ -86,7 +86,7 @@ function goBack() {
     </div>
 
     <!-- 标题 -->
-    <h1 class="text-xl sm:text-2xl font-bold text-white mb-2">{{ articleTitle }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-foreground mb-2">{{ articleTitle }}</h1>
     <p class="text-xs text-default-400 mb-5 pb-4 border-b border-default-200">
       {{ articlePath }}
     </p>
