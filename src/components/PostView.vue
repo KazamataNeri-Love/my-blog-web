@@ -61,7 +61,7 @@ function goBack() {
 
 <template>
   <!-- 单个大气泡（文章阅读） -->
-  <KunCard color="background" bordered class="min-h-[400px]">
+  <KunCard color="background" bordered class="min-h-[400px] p-5">
     <!-- 返回 -->
     <div class="flex items-center justify-between mb-4 pb-3 border-b border-default-200">
       <button
@@ -104,7 +104,7 @@ function goBack() {
     <!-- 正文 -->
     <div
       v-else
-      class="markdown-body"
+      class="markdown-body px-2"
       v-html="articleHtml"
     ></div>
   </KunCard>

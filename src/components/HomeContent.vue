@@ -83,7 +83,7 @@ function isCurrentArticle(path: string): boolean {
 
     <!-- === 下部大气泡（帖子列表） === -->
     <KunCard color="background" bordered class="min-h-[300px]">
-      <div class="flex items-center justify-between mb-3 px-1">
+      <div class="flex items-center justify-between mb-3 px-2">
         <p class="text-sm font-semibold text-foreground">
           {{ activeChannel ? `${activeChannel}频道` : '全部文章' }}
         </p>
