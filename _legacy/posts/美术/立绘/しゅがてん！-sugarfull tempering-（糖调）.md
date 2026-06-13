@@ -17,7 +17,7 @@
 
 *解压方法： 将后缀完整改为rar，如有密码，默认为YUKI或yuki*
 
-![eve01b.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/images/%E3%81%97%E3%82%85%E3%81%8C%E3%81%A6%E3%82%93%EF%BC%81-sugarfull%20tempering-%EF%BC%88%E7%B3%96%E8%B0%83%EF%BC%89/1781372511986-eve01b.png)
+![eve01b.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/_legacy/images/%E3%81%97%E3%82%85%E3%81%8C%E3%81%A6%E3%82%93%EF%BC%81-sugarfull%20tempering-%EF%BC%88%E7%B3%96%E8%B0%83%EF%BC%89/1781393071045-eve01b.png)
 
 
 # 碎碎念
