@@ -97,3 +97,11 @@ html {
 ::-webkit-scrollbar-thumb:hover { background: hsl(240, 5%, 34%); }
 * { scrollbar-width: thin; scrollbar-color: hsl(240, 5%, 26%) transparent; }
 
+/* Folder tree: children hidden by default, shown when parent has folder-open */
+.tree-children {
+  display: none;
+}
+.folder-open > .tree-children {
+  display: block;
+}
+

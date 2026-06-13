@@ -41,7 +41,7 @@ function extractCategory(path: string): string {
 </script>
 
 <template>
-  <aside class="flex-[1] min-w-0 shrink-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
+  <aside class="flex-[1] min-w-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
     <!-- Stats Card -->
     <div>
       <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">统计</p>

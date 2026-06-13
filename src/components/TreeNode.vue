@@ -29,13 +29,13 @@ function displayName(name: string): string {
 
 <template>
   <template v-for="key in getKeys()" :key="key">
-    <!-- Folder (KunButton light style) -->
+    <!-- Folder -->
     <li v-if="nodes[key].children && Object.keys(nodes[key].children).length > 0 && !nodes[key].path" class="folder-open">
       <button
         class="relative inline-flex cursor-pointer items-center gap-1.5 overflow-hidden font-medium transition-all w-full text-left px-3 py-1.5 text-sm rounded-md text-default-500 hover:bg-default-100 hover:text-foreground"
         @click="toggleFolder"
       >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 transition-transform">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 transition-transform group-open:rotate-90">
           <polyline points="9 18 15 12 9 6" />
         </svg>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0" style="color: hsl(37, 74%, 44%);">
@@ -43,7 +43,7 @@ function displayName(name: string): string {
         </svg>
         <span class="truncate text-xs">{{ displayName(nodes[key].name) }}</span>
       </button>
-      <ul class="hidden pl-3 list-none folder-open:block">
+      <ul class="tree-children pl-3 list-none">
         <TreeNode
           :nodes="nodes[key].children"
           :sort-mode="sortMode"
