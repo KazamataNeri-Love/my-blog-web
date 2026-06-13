@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { fetchFileTree } from '@/composables/useGithubApi'
 import type { GitTreeItem } from '@/types'
 
+const route = useRoute()
 const router = useRouter()
-const recentFiles = ref<GitTreeItem[]>([])
+
+const allFiles = ref<GitTreeItem[]>([])
 const loading = ref(true)
+
+const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Avatar/Default.png'
+
+// 是否处于浏览文章状态
+const isReading = computed(() => !!route.query.f)
+
+const articleCount = computed(() => {
+  return allFiles.value.filter(f => f.type === 'blob' && f.path.endsWith('.md')).length
+})
 
 onMounted(async () => {
   try {
-    const files = await fetchFileTree()
-    // Sort by path (which includes date prefix) and take recent
-    recentFiles.value = files
-      .filter(f => f.type === 'blob' && f.path.endsWith('.md'))
-      .sort((a, b) => b.path.localeCompare(a.path))
-      .slice(0, 10)
+    allFiles.value = await fetchFileTree()
   } catch {
     // silent
   } finally {
@@ -23,83 +29,70 @@ onMounted(async () => {
   }
 })
 
-function openFile(path: string) {
-  router.push({ path: '/', query: { f: path } })
-}
-
-function displayName(path: string): string {
-  return path
-    .replace('_legacy/posts/', '')
-    .replace('.md', '')
-    .replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
-}
-
-function extractCategory(path: string): string {
-  const parts = path.replace('_legacy/posts/', '').split('/')
-  return parts.length > 1 ? parts[0] : '未分类'
-}
+// 建站时间（固定）
+const SITE_CREATED = '2025-01-01'
+const lastUpdated = computed(() => {
+  if (allFiles.value.length === 0) return '-'
+  const paths = allFiles.value.map(f => f.path).sort()
+  const latest = paths[paths.length - 1]
+  const m = latest.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : '-'
+})
 </script>
 
 <template>
   <aside class="min-w-0 border-l border-default-200 overflow-y-auto p-5 space-y-6">
-    <!-- Stats Card -->
-    <div>
-      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">统计</p>
-      <div class="space-y-2">
+    <!-- === 常态：站长信息气泡 === -->
+    <div v-if="!isReading" class="flex flex-col items-center text-center">
+      <!-- 头像（纯色背景 + 黑色边框圆形） -->
+      <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-8 px-4 border border-default-200">
+        <div class="w-20 h-20 rounded-full border-[3px] border-default-900 overflow-hidden bg-default-200 flex items-center justify-center mb-3">
+          <img
+            :src="AVATAR_URL"
+            alt="站长"
+            class="w-full h-full object-cover"
+          />
+        </div>
+        <p class="text-base font-bold text-foreground">霎晴</p>
+        <p class="text-xs text-default-400 mt-0.5">欢迎来到被遗忘的小苑</p>
+      </div>
+
+      <!-- 信息列表 -->
+      <div class="w-full mt-4 space-y-2.5">
         <div class="flex items-center justify-between text-sm">
           <span class="text-default-400">文章总数</span>
-          <span class="font-semibold">{{ recentFiles.length }}+</span>
+          <span class="font-semibold">{{ loading ? '...' : articleCount }}</span>
         </div>
         <div class="flex items-center justify-between text-sm">
-          <span class="text-default-400">分类</span>
-          <span class="font-semibold">美术 · 音乐</span>
+          <span class="text-default-400">建站时间</span>
+          <span class="font-semibold">{{ SITE_CREATED }}</span>
         </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-default-400">上次更新</span>
+          <span class="font-semibold">{{ lastUpdated }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- === 浏览态：文章信息（TOC 待 Sprint 3 实现） === -->
+    <div v-else class="flex flex-col items-center text-center">
+      <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-6 px-4 border border-default-200">
+        <div class="w-16 h-16 rounded-kun-lg overflow-hidden bg-default-200 flex items-center justify-center mb-3">
+          <img :src="AVATAR_URL" alt="撰文人" class="w-full h-full object-cover" />
+        </div>
+        <p class="text-sm text-primary font-medium">霎晴</p>
+      </div>
+
+      <!-- 文章目录（占位，Sprint 3 实现） -->
+      <div class="w-full mt-4">
+        <p class="text-default-400 text-xs font-semibold tracking-wide uppercase mb-2 text-left">文章目录</p>
+        <p class="text-default-400 text-xs text-left">加载中…</p>
       </div>
     </div>
 
     <KunDivider color="default" />
 
-    <!-- Recent Activity -->
-    <div>
-      <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">最新动态</p>
-
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center py-6 text-default-400">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin">
-          <path d="M21 12a9 9 0 11-6.219-8.56"/>
-        </svg>
-      </div>
-
-      <!-- Activity list -->
-      <div v-else class="space-y-3">
-        <div
-          v-for="file in recentFiles"
-          :key="file.path"
-          class="group cursor-pointer"
-          @click="openFile(file.path)"
-        >
-          <div class="flex items-start gap-2.5">
-            <div class="mt-1 shrink-0">
-              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary">
-                <circle cx="12" cy="12" r="10"/>
-              </svg>
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm text-default-500 group-hover:text-foreground transition-colors line-clamp-2 leading-snug">
-                {{ displayName(file.path) }}
-              </p>
-              <div class="flex items-center gap-2 mt-0.5">
-                <span class="text-default-400 text-xs">{{ extractCategory(file.path) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <KunDivider color="default" />
-
-    <!-- Quick Links -->
+    <!-- 相关链接 -->
     <div>
       <p class="text-default-400 mb-3 text-xs font-semibold tracking-wide uppercase">相关链接</p>
       <div class="space-y-1">
