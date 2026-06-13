@@ -133,7 +133,7 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
     </div>
 
     <!-- 设置面板模态框 -->
-    <KunModal v-model="showSettings" size="full" class="!max-w-3xl" innerClassName="[background:hsl(var(--content1))]">
+    <KunModal v-model="showSettings" size="full" innerClassName="[background:hsl(var(--content1))] [width:20vw] min-w-[400px]">
       <template #default>
         <div class="relative">
           <!-- 右上角关闭 -->
