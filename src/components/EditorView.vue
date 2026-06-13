@@ -207,44 +207,44 @@ async function save() {
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: 100%;">
+  <div class="flex flex-col h-full">
     <!-- Editor Header -->
-    <div class="top-bar" style="position: static; margin: -32px -48px 0; padding: 12px 20px;">
-      <a href="/" class="back-link" style="color: var(--accent); font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+    <div class="flex items-center justify-between px-5 py-3 border-b border-default-200 bg-background/80 backdrop-blur shrink-0">
+      <router-link to="/" class="flex items-center gap-1.5 text-primary text-sm hover:opacity-80 transition-opacity">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="19" y1="12" x2="5" y2="12"/>
           <polyline points="12 19 5 12 12 5"/>
         </svg>
         返回列表
-      </a>
-      <div class="header-inputs" style="flex: 1; margin: 0 20px; display: flex; gap: 10px; align-items: center;">
-        <label style="font-weight: 600; font-size: 13px; color: var(--text-sub); white-space: nowrap;">路径/标题:</label>
+      </router-link>
+      <div class="flex-1 mx-5 flex items-center gap-2">
+        <label class="text-default-500 text-sm font-semibold whitespace-nowrap">路径/标题:</label>
         <input
           v-model="titleInput"
           type="text"
-          class="modal-input"
+          class="flex-1 px-3 py-2 text-sm border border-default-200 rounded-kun-md bg-background text-foreground outline-none transition-colors focus:border-primary"
           placeholder="例如: 笔记/Vue/第一课"
-          style="margin-bottom: 0;"
           @keydown="handleKeydown"
         />
       </div>
-      <div class="header-actions" style="display: flex; gap: 10px;">
-        <button class="btn-primary" @click="save">
+      <KunButton variant="solid" color="success" size="sm" @click="save">
+        <template #default>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
             <polyline points="17 21 17 13 7 13 7 21"/>
             <polyline points="7 3 7 8 15 8"/>
           </svg>
           保存
-        </button>
-      </div>
+        </template>
+      </KunButton>
     </div>
 
     <!-- Editor Layout -->
-    <div class="editor-layout">
+    <div class="flex-1 flex overflow-hidden">
       <!-- Left: Editor -->
-      <div class="editor-pane">
-        <div class="toolbar">
+      <div class="flex-1 flex flex-col border-r border-default-200 min-w-0">
+        <!-- Toolbar -->
+        <div class="flex items-center gap-1 flex-wrap px-3 py-2 border-b border-default-200 bg-default-100/30">
           <button class="tool-btn" @click="insertMD('**', '**')"><b>B</b></button>
           <button class="tool-btn" @click="insertMD('*', '*')"><i>I</i></button>
           <button class="tool-btn" @click="insertMD('# ', '')">H1</button>
@@ -253,10 +253,8 @@ async function save() {
           <button class="tool-btn" @click="insertTable()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <line x1="3" y1="9" x2="21" y2="9"/>
-              <line x1="3" y1="15" x2="21" y2="15"/>
-              <line x1="9" y1="3" x2="9" y2="21"/>
-              <line x1="15" y1="3" x2="15" y2="21"/>
+              <line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/>
+              <line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>
             </svg>
           </button>
           <button class="tool-btn" @click="insertMD('> ', '')">
@@ -291,18 +289,26 @@ async function save() {
             </svg>
             外部/网盘
           </button>
-          <button class="tool-btn" :class="{ active: isSplitMode }" style="margin-left: auto;" @click="toggleSplit">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="18"/>
-              <rect x="14" y="3" width="7" height="18"/>
-            </svg>
-            {{ isSplitMode ? '关闭分栏' : '分栏预览' }}
-          </button>
+          <KunButton
+            variant="light"
+            color="default"
+            size="sm"
+            class="ml-auto"
+            @click="toggleSplit"
+          >
+            <template #default>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="18"/><rect x="14" y="3" width="7" height="18"/>
+              </svg>
+              {{ isSplitMode ? '关闭分栏' : '分栏预览' }}
+            </template>
+          </KunButton>
         </div>
 
         <textarea
           v-model="contentArea"
-          class="editor-textarea"
+          class="flex-1 w-full resize-none border-none p-5 outline-none overflow-y-auto bg-background text-foreground"
+          style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; line-height: 1.7;"
           placeholder="在此撰写 Markdown... (Ctrl+S 保存)"
           @input="updateWordCount"
           @keydown="handleKeydown"
@@ -310,72 +316,70 @@ async function save() {
       </div>
 
       <!-- Right: Preview -->
-      <div v-if="isSplitMode" class="preview-pane">
-        <div class="markdown-body" v-html="previewHtml"></div>
+      <div v-if="isSplitMode" class="flex-1 overflow-y-auto p-10 bg-background">
+        <div class="kun-prose" v-html="previewHtml"></div>
       </div>
     </div>
 
     <!-- Status Bar -->
-    <div class="status-bar">
+    <div class="flex items-center justify-between px-5 py-1.5 text-xs text-default-400 border-t border-default-200 bg-default-100/30 shrink-0">
       <span>{{ statusText }}</span>
       <span>{{ wordCount }} 字</span>
     </div>
   </div>
 
   <!-- Image Upload Modal -->
-  <div v-if="showImgModal" class="modal-overlay open" @click.self="closeImgModal">
-    <div class="modal">
-      <h3>插入图片</h3>
-      <div style="width:100%; height:200px; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center; border:1px dashed var(--border); border-radius:var(--radius-md); margin-bottom:16px;">
-        <img v-if="imgPreviewUrl" :src="imgPreviewUrl" style="max-width:100%; max-height:100%; object-fit:contain;" />
-        <span v-else style="color:var(--text-muted)">预览区</span>
+  <KunModal v-model="showImgModal" size="sm">
+    <template #default>
+      <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">插入图片</h3>
+      <div class="w-full h-48 bg-default-100/50 flex items-center justify-center border border-dashed border-default-200 rounded-kun-md mb-4">
+        <img v-if="imgPreviewUrl" :src="imgPreviewUrl" class="max-w-full max-h-full object-contain" />
+        <span v-else class="text-default-400">预览区</span>
       </div>
       <label class="modal-label">Github Token:</label>
       <input v-model="uploadToken" type="password" class="modal-input" placeholder="输入 Token" />
       <label class="modal-label">图片宽度（可选）:</label>
       <input v-model="imgWidth" class="modal-input" placeholder="例如: 50% 或 400px 或 orig (原始)" />
-      <div class="modal-footer">
-        <button class="tool-btn" @click="closeImgModal">取消</button>
-        <button class="btn-primary" @click="confirmUpload">上传并插入</button>
+      <div class="flex justify-end gap-2 mt-4">
+        <KunButton variant="light" color="default" size="sm" @click="closeImgModal">取消</KunButton>
+        <KunButton variant="solid" color="primary" size="sm" @click="confirmUpload">上传并插入</KunButton>
       </div>
-    </div>
-  </div>
+    </template>
+  </KunModal>
 
   <!-- File Browser Modal -->
-  <div v-if="showFileModal" class="modal-overlay open" @click.self="showFileModal = false">
-    <div class="modal">
-      <h3>选择仓库文件</h3>
-      <div style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">
-        {{ fileListPath || '/' }}
-      </div>
-      <ul class="file-list-modal">
-        <li v-if="fileListPath" @click="loadFiles(fileListPath.split('/').slice(0, -1).join('/'))">
+  <KunModal v-model="showFileModal" size="sm">
+    <template #default>
+      <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">选择仓库文件</h3>
+      <div class="text-xs text-default-400 mb-1">{{ fileListPath || '/' }}</div>
+      <ul class="list-none p-0 max-h-64 overflow-y-auto border border-default-200 rounded-kun-sm">
+        <li v-if="fileListPath" class="px-3 py-2 border-b border-default-200 cursor-pointer text-sm hover:bg-default-100 transition-colors" @click="loadFiles(fileListPath.split('/').slice(0, -1).join('/'))">
           🔙 返回上级
         </li>
-        <li v-for="item in fileList" :key="item.path" @click="selectFile(item)">
+        <li v-for="item in fileList" :key="item.path" class="px-3 py-2 border-b border-default-200 cursor-pointer text-sm hover:bg-default-100 transition-colors last:border-b-0" @click="selectFile(item)">
           {{ item.type === 'dir' ? '📂' : '📄' }} {{ item.name }}
         </li>
       </ul>
-      <div class="modal-footer">
-        <button class="tool-btn" @click="showFileModal = false">关闭</button>
+      <div class="flex justify-end mt-4">
+        <KunButton variant="light" color="default" size="sm" @click="showFileModal = false">关闭</KunButton>
       </div>
-    </div>
-  </div>
+    </template>
+  </KunModal>
 
   <!-- External Link Modal -->
-  <div v-if="showExtModal" class="modal-overlay open" @click.self="showExtModal = false">
-    <div class="modal">
-      <h3>插入外部/Release 资源</h3>
+  <KunModal v-model="showExtModal" size="sm">
+    <template #default>
+      <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3">插入外部/Release 资源</h3>
       <label class="modal-label">资源显示名称:</label>
       <input v-model="extName" class="modal-input" placeholder="例如: 游戏完整版 v1.0.zip" />
       <label class="modal-label">下载链接 (URL):</label>
       <input v-model="extUrl" class="modal-input" placeholder="https://..." />
       <label class="modal-label">提取码/备注 (可选):</label>
       <input v-model="extNote" class="modal-input" placeholder="例如: 提取码 1234" />
-      <div class="modal-footer">
-        <button class="tool-btn" @click="showExtModal = false">取消</button>
-        <button class="btn-primary" @click="insertExtLink">确认插入</button>
+      <div class="flex justify-end gap-2 mt-4">
+        <KunButton variant="light" color="default" size="sm" @click="showExtModal = false">取消</KunButton>
+        <KunButton variant="solid" color="primary" size="sm" @click="insertExtLink">确认插入</KunButton>
       </div>
-    </div>
-  </div>
+    </template>
+  </KunModal>
 </template>

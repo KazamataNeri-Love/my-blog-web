@@ -10,7 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "marked": "^15.0.0",
+    "@kungal/ui-core": "^0.17.1",
+    "@kungal/ui-tokens": "^0.17.1",
+    "@kungal/ui-vue": "^0.17.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "marked": "^18.0.5",
+    "tailwindcss": "^4.3.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

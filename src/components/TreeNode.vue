@@ -21,21 +21,29 @@ function toggleFolder(e: MouseEvent) {
 function getKeys() {
   return sortTreeKeys(props.nodes, props.sortMode)
 }
+
+function displayName(name: string): string {
+  return name.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
+}
 </script>
 
 <template>
   <template v-for="key in getKeys()" :key="key">
-    <li v-if="nodes[key].children && Object.keys(nodes[key].children).length > 0 && !nodes[key].path">
-      <div class="folder-item" @click="toggleFolder">
-        <svg class="folder-arrow" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Folder -->
+    <li v-if="nodes[key].children && Object.keys(nodes[key].children).length > 0 && !nodes[key].path" class="folder-open">
+      <div
+        class="flex items-center gap-1.5 px-3 py-1 text-sm rounded-md cursor-pointer transition-colors text-default-500 hover:bg-default-100 hover:text-foreground"
+        @click="toggleFolder"
+      >
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 transition-transform">
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        <svg class="folder-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0" style="color: hsl(37, 74%, 44%);">
           <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
         </svg>
-        <span>{{ nodes[key].name.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '') }}</span>
+        <span class="truncate">{{ displayName(nodes[key].name) }}</span>
       </div>
-      <ul class="nested-ul">
+      <ul class="hidden pl-0 list-none folder-open:block">
         <TreeNode
           :nodes="nodes[key].children"
           :sort-mode="sortMode"
@@ -44,17 +52,20 @@ function getKeys() {
         />
       </ul>
     </li>
+    <!-- File -->
     <li v-else>
       <div
-        class="file-item"
-        :class="{ active: activePath === nodes[key].path }"
+        class="flex items-center gap-2 px-3 py-1 text-sm rounded-md cursor-pointer transition-colors truncate"
+        :class="activePath === nodes[key].path
+          ? '!text-primary bg-primary/10 font-medium'
+          : 'text-default-500 hover:bg-default-100 hover:text-foreground'"
         @click="emit('select', nodes[key].path!)"
       >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0">
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
           <polyline points="14 2 14 8 20 8" />
         </svg>
-        <span>{{ nodes[key].name.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '') }}</span>
+        <span class="truncate">{{ displayName(nodes[key].name) }}</span>
       </div>
     </li>
   </template>
