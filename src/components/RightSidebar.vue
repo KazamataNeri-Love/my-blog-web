@@ -58,7 +58,7 @@ const lastUpdated = computed(() => {
       </div>
 
       <!-- 信息列表气泡 -->
-      <KunCard color="background" bordered class="p-4">
+      <KunCard color="background" bordered class="p-4 w-full">
         <div class="space-y-2.5">
           <div class="flex items-center justify-between text-sm">
             <span class="text-default-400">文章总数</span>
@@ -91,8 +91,6 @@ const lastUpdated = computed(() => {
         <p class="text-default-400 text-xs text-left">加载中…</p>
       </div>
     </div>
-
-    <KunDivider color="default" />
 
     <!-- 相关链接气泡 -->
     <KunCard color="background" bordered class="p-4">
