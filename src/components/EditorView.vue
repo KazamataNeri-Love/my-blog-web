@@ -247,8 +247,8 @@ async function save() {
         <div class="flex items-center gap-1 flex-wrap px-3 py-2 border-b border-default-200 bg-default-100/30">
           <button class="tool-btn" @click="insertMD('**', '**')"><b>B</b></button>
           <button class="tool-btn" @click="insertMD('*', '*')"><i>I</i></button>
-          <button class="tool-btn" @click="insertMD('# ', '')">H1</button>
-          <button class="tool-btn" @click="insertMD('## ', '')">H2</button>
+          <button class="tool-btn text-foreground font-bold" @click="insertMD('# ', '')">H1</button>
+          <button class="tool-btn text-foreground font-bold" @click="insertMD('## ', '')">H2</button>
           <div class="tool-sep"></div>
           <button class="tool-btn" @click="insertTable()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -274,20 +274,17 @@ async function save() {
               <circle cx="8.5" cy="8.5" r="1.5"/>
               <path d="M21 15l-5-5L5 21"/>
             </svg>
-            图片
           </button>
           <button class="tool-btn" @click="openFileBrowser" title="插入仓库内文件">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
             </svg>
-            文件
           </button>
           <button class="tool-btn" @click="openExtLinkModal" title="插入外部链接">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
               <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
             </svg>
-            外部/网盘
           </button>
           <KunButton
             variant="light"
