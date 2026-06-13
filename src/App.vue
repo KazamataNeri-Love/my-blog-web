@@ -134,7 +134,7 @@ const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-b
     </div>
 
     <!-- 设置面板模态框 -->
-    <KunModal v-model="showSettings" size="full" innerClassName="[background:hsl(var(--content1))] [width:35vw] [height:35vh] min-w-[400px] min-h-[300px]">
+    <KunModal v-model="showSettings" size="full" innerClassName="[background:hsl(var(--content1))] [width:35vw] [height:35vh] min-w-[400px] min-h-[300px] p-5">
       <template #default>
         <div class="relative h-full flex flex-col">
           <!-- 右上角关闭 -->
