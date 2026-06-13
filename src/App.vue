@@ -16,6 +16,14 @@ watchEffect(() => {
 // Search bar toggle
 const showSearch = ref(false)
 
+// Settings modal
+const showSettings = ref(false)
+const bgOpacity = ref(Number(localStorage.getItem('bg-opacity')) || 82)
+watchEffect(() => {
+  document.documentElement.style.setProperty('--bg-overlay-opacity', String(bgOpacity.value / 100))
+  localStorage.setItem('bg-opacity', String(bgOpacity.value))
+})
+
 function goHome() {
   router.push('/')
 }
@@ -54,14 +62,15 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
           </svg>
         </button>
 
-        <!-- 设置（暂留空） -->
+        <!-- 设置（齿轮图标） -->
         <button
           class="text-default-500 hover:text-foreground cursor-pointer p-1.5 rounded-kun-sm hover:bg-default-100 transition-colors"
+          @click="showSettings = true"
           title="设置"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
           </svg>
         </button>
 
@@ -117,5 +126,43 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
       </main>
       <RightSidebar class="hidden xl:block" />
     </div>
+
+    <!-- 设置面板模态框 -->
+    <KunModal v-model="showSettings" size="sm">
+      <template #default>
+        <h3 class="text-base font-semibold mb-5 border-b border-default-200 pb-3 flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+          设置面板
+        </h3>
+
+        <div class="space-y-5">
+          <!-- 页面透明度 -->
+          <div>
+            <label class="modal-label flex items-center justify-between">
+              <span>页面透明度</span>
+              <span class="text-foreground font-mono text-sm">{{ bgOpacity }}%</span>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              v-model.number="bgOpacity"
+              class="w-full accent-primary cursor-pointer"
+            />
+            <div class="flex justify-between text-xs text-default-400 mt-1">
+              <span>透明</span>
+              <span>不透明</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer mt-5">
+          <KunButton variant="light" color="default" size="sm" @click="showSettings = false">关闭</KunButton>
+        </div>
+      </template>
+    </KunModal>
   </div>
 </template>

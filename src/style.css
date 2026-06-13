@@ -37,14 +37,14 @@ html {
 /* Dark mode overlay (夜间：黑色半透明在上层) */
 .kun-dark-mode .app-bg {
   background-image: 
-    linear-gradient(hsla(0, 0%, 0%, 0.82), hsla(0, 0%, 0%, 0.82)),
+    linear-gradient(hsla(0, 0%, 0%, var(--bg-overlay-opacity, 0.82)), hsla(0, 0%, 0%, var(--bg-overlay-opacity, 0.82))),
     url('https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Background/Default.png');
 }
 
 /* Light mode overlay (日间：白色半透明在上层) */
 html:not(.kun-dark-mode) .app-bg {
   background-image: 
-    linear-gradient(hsla(0, 0%, 100%, 0.85), hsla(0, 0%, 100%, 0.85)),
+    linear-gradient(hsla(0, 0%, 100%, var(--bg-overlay-opacity, 0.85)), hsla(0, 0%, 100%, var(--bg-overlay-opacity, 0.85))),
     url('https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Background/Default.png');
 }
 .kun-prose img {
