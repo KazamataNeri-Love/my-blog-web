@@ -34,6 +34,7 @@ function goHome() {
 }
 
 const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Avatar/Default.png'
+const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-web/main/Resource/Cute/Default.png'
 </script>
 
 <template>
@@ -133,19 +134,19 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
     </div>
 
     <!-- 设置面板模态框 -->
-    <KunModal v-model="showSettings" size="full" innerClassName="[background:hsl(var(--content1))] [width:20vw] min-w-[400px]">
+    <KunModal v-model="showSettings" size="full" innerClassName="[background:hsl(var(--content1))] [width:35vw] [height:35vh] min-w-[400px] min-h-[300px]">
       <template #default>
-        <div class="relative">
+        <div class="relative h-full flex flex-col">
           <!-- 右上角关闭 -->
           <button
-            class="absolute top-0 right-0 text-default-400 hover:text-foreground cursor-pointer p-1 rounded-kun-sm hover:bg-default-100 transition-colors"
+            class="absolute top-0 right-0 text-default-400 hover:text-foreground cursor-pointer p-1 rounded-kun-sm hover:bg-default-100 transition-colors z-10"
             @click="showSettings = false"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
-          <h3 class="text-base font-semibold mb-5 border-b border-default-200 pb-3 flex items-center gap-2">
+          <h3 class="text-base font-semibold mb-4 border-b border-default-200 pb-3 flex items-center gap-2 shrink-0">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -153,43 +154,39 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
           设置面板
         </h3>
 
-        <div class="space-y-5">
-          <!-- 背景亮度 -->
-          <div>
-            <label class="modal-label flex items-center justify-between">
-              <span>背景亮度</span>
-              <span class="text-foreground font-mono text-sm">{{ bgBrightness }}%</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              v-model.number="bgBrightness"
-              class="w-full accent-primary cursor-pointer"
-            />
-            <div class="flex justify-between text-xs text-default-400 mt-1">
-              <span>暗</span>
-              <span>亮</span>
+        <div class="flex flex-1 gap-4 min-h-0">
+          <!-- 左侧 2/3：滑条 -->
+          <div class="flex-[2] space-y-4 overflow-y-auto pr-2">
+            <div>
+              <label class="modal-label flex items-center justify-between">
+                <span>背景亮度</span>
+                <span class="text-foreground font-mono text-sm">{{ bgBrightness }}%</span>
+              </label>
+              <input type="range" min="0" max="100" v-model.number="bgBrightness" class="w-full accent-primary cursor-pointer" />
+              <div class="flex justify-between text-xs text-default-400 mt-1">
+                <span>暗</span>
+                <span>亮</span>
+              </div>
+            </div>
+            <div>
+              <label class="modal-label flex items-center justify-between">
+                <span>页面透明度</span>
+                <span class="text-foreground font-mono text-sm">{{ glassOpacity }}%</span>
+              </label>
+              <input type="range" min="0" max="100" v-model.number="glassOpacity" class="w-full accent-primary cursor-pointer" />
+              <div class="flex justify-between text-xs text-default-400 mt-1">
+                <span>透明</span>
+                <span>不透明</span>
+              </div>
             </div>
           </div>
-
-          <!-- 页面透明度 -->
-          <div>
-            <label class="modal-label flex items-center justify-between">
-              <span>页面透明度</span>
-              <span class="text-foreground font-mono text-sm">{{ glassOpacity }}%</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              v-model.number="glassOpacity"
-              class="w-full accent-primary cursor-pointer"
+          <!-- 右侧 1/3：可爱图片 -->
+          <div class="flex-[1] flex items-center justify-center">
+            <img
+              :src="CUTE_IMAGE_URL"
+              alt="cute"
+              class="w-full h-full object-contain rounded-kun-md"
             />
-            <div class="flex justify-between text-xs text-default-400 mt-1">
-              <span>透明</span>
-              <span>不透明</span>
-            </div>
           </div>
         </div>
         </div>
