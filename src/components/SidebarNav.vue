@@ -69,7 +69,7 @@ function isActive(path: string | null): boolean {
 
 <template>
   <aside
-    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] flex-[1] min-w-0 flex-col border-r bg-default-100/20"
+    class="border-default-200 sticky top-[57px] flex h-[calc(100vh-57px)] min-w-0 flex-col border-r bg-default-100/20"
     @click.stop
   >
     <!-- Search -->

@@ -70,7 +70,7 @@ function goHome() {
     </header>
 
     <!-- Layout: forum-style three columns -->
-    <div class="mx-auto flex max-w-7xl" style="height: calc(100vh - 57px);">
+    <div class="mx-auto max-w-7xl" style="height: calc(100vh - 57px); display: grid; grid-template-columns: 1fr 4fr 1fr;">
       <!-- Left Sidebar: 1/6 -->
       <SidebarNav
         :class="[sidebarOpen ? 'flex' : '', 'hidden lg:flex']"
@@ -78,7 +78,7 @@ function goHome() {
       />
 
       <!-- Main content: 4/6 -->
-      <main class="min-w-0 flex-[4] overflow-y-auto px-5 py-6">
+      <main class="min-w-0 overflow-y-auto px-5 py-6">
         <router-view />
       </main>
 
