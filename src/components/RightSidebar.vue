@@ -41,9 +41,9 @@ const lastUpdated = computed(() => {
 </script>
 
 <template>
-  <aside class="min-w-0 overflow-y-auto p-5 space-y-6">
+  <aside class="min-w-0 overflow-y-auto px-5 pt-6 pb-5 space-y-5">
     <!-- === 常态：站长信息气泡 === -->
-    <div v-if="!isReading" class="flex flex-col items-center text-center">
+    <div v-if="!isReading" class="flex flex-col items-center text-center gap-4">
       <!-- 头像（纯色背景 + 黑色边框圆形） -->
       <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-8 px-4 border border-default-200">
         <div class="w-28 h-28 lg:w-32 lg:h-32 rounded-full border-[3px] border-default-900 overflow-hidden bg-default-200 flex items-center justify-center mb-3">
@@ -77,7 +77,7 @@ const lastUpdated = computed(() => {
     </div>
 
     <!-- === 浏览态：文章信息（TOC 待 Sprint 3 实现） === -->
-    <div v-else class="flex flex-col items-center text-center">
+    <div v-else class="flex flex-col items-center text-center gap-4">
       <div class="w-full rounded-kun-lg bg-default-100/50 flex flex-col items-center py-6 px-4 border border-default-200">
         <div class="w-16 h-16 rounded-kun-lg overflow-hidden bg-default-200 flex items-center justify-center mb-3">
           <img :src="AVATAR_URL" alt="撰文人" class="w-full h-full object-cover" />
