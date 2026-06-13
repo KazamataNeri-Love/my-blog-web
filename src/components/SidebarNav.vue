@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { fetchFileTree, buildTree, sortTreeKeys } from '@/composables/useGithubApi'
+import { fetchFileTree, buildTree } from '@/composables/useGithubApi'
 import type { TreeNode, GitTreeItem, SortMode } from '@/types'
+import TreeNodeComponent from './TreeNode.vue'
 
 const emit = defineEmits<{ closeSidebar: [] }>()
 
@@ -63,16 +64,6 @@ function toggleSortMenu() {
 function isActive(path: string | null): boolean {
   if (!path) return false
   return route.query.f === path
-}
-
-function isFolderOpen(node: TreeNode, key: string): boolean {
-  if (!node.path && Object.keys(node.children).length > 0) {
-    // Check if any child matches the active path
-    const currentPath = route.query.f as string
-    if (!currentPath) return false
-    return currentPath.startsWith(`posts/${key}`) || currentPath.includes(`/${key}/`)
-  }
-  return false
 }
 </script>
 
@@ -188,9 +179,8 @@ function isFolderOpen(node: TreeNode, key: string): boolean {
 
       <!-- Tree view -->
       <template v-else>
-        <TreeNode
+        <TreeNodeComponent
           :nodes="treeData.children"
-          :level="1"
           :sort-mode="currentSortMode"
           :active-path="(route.query.f as string) || ''"
           @select="handlePostClick"
@@ -213,89 +203,4 @@ function isFolderOpen(node: TreeNode, key: string): boolean {
   </aside>
 </template>
 
-<!-- Recursive TreeNode sub-component -->
-<script lang="ts">
-import { defineComponent, type PropType, h } from 'vue'
-import type { TreeNode as TreeNodeType, SortMode } from '@/types'
-import { sortTreeKeys } from '@/composables/useGithubApi'
 
-export const TreeNode = defineComponent({
-  name: 'TreeNode',
-  props: {
-    nodes: { type: Object as PropType<Record<string, TreeNodeType>>, required: true },
-    level: { type: Number, default: 1 },
-    sortMode: { type: String as PropType<SortMode>, default: 'date' },
-    activePath: { type: String, default: '' },
-  },
-  emits: ['select'],
-  render() {
-    const keys = sortTreeKeys(this.nodes, this.sortMode)
-    return h('div', {}, keys.map((key) => {
-      const node = this.nodes[key]
-      const isFolder = Object.keys(node.children).length > 0 && !node.path
-      const displayName = node.name.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
-      const isActive = this.activePath === node.path
-
-      if (isFolder) {
-        return h('li', { class: { 'folder-open': false } }, [
-          h('div', {
-            class: 'folder-item',
-            onClick: (e: MouseEvent) => {
-              const li = (e.target as HTMLElement).closest('li')
-              if (li) li.classList.toggle('folder-open')
-            },
-          }, [
-            h('svg', {
-              class: 'folder-arrow',
-              width: 10, height: 10,
-              viewBox: '0 0 24 24',
-              fill: 'none',
-              stroke: 'currentColor',
-              'stroke-width': 2,
-            }, [
-              h('polyline', { points: '9 18 15 12 9 6' }),
-            ]),
-            h('svg', {
-              class: 'folder-icon',
-              width: 12, height: 12,
-              viewBox: '0 0 24 24',
-              fill: 'none',
-              stroke: 'currentColor',
-              'stroke-width': 2,
-            }, [
-              h('path', { d: 'M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z' }),
-            ]),
-            h('span', displayName),
-          ]),
-          h('ul', { class: 'nested-ul' }, [
-            h(TreeNode, {
-              nodes: node.children,
-              level: this.level + 1,
-              sortMode: this.sortMode,
-              activePath: this.activePath,
-              onSelect: (path: string) => this.$emit('select', path),
-            }),
-          ]),
-        ])
-      }
-
-      return h('li', {}, h('div', {
-        class: ['file-item', { active: isActive }],
-        onClick: () => this.$emit('select', node.path),
-      }, [
-        h('svg', {
-          width: 12, height: 12,
-          viewBox: '0 0 24 24',
-          fill: 'none',
-          stroke: 'currentColor',
-          'stroke-width': 2,
-        }, [
-          h('path', { d: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z' }),
-          h('polyline', { points: '14 2 14 8 20 8' }),
-        ]),
-        h('span', displayName),
-      ]))
-    }))
-  },
-})
-</script>
