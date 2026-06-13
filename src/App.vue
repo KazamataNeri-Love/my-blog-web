@@ -133,9 +133,19 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
     </div>
 
     <!-- 设置面板模态框 -->
-    <KunModal v-model="showSettings" size="xl" innerClassName="[background:hsl(var(--content1))]">
+    <KunModal v-model="showSettings" size="full" class="!max-w-3xl" innerClassName="[background:hsl(var(--content1))]">
       <template #default>
-        <h3 class="text-base font-semibold mb-5 border-b border-default-200 pb-3 flex items-center gap-2">
+        <div class="relative">
+          <!-- 右上角关闭 -->
+          <button
+            class="absolute top-0 right-0 text-default-400 hover:text-foreground cursor-pointer p-1 rounded-kun-sm hover:bg-default-100 transition-colors"
+            @click="showSettings = false"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <h3 class="text-base font-semibold mb-5 border-b border-default-200 pb-3 flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
@@ -182,10 +192,8 @@ const AVATAR_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-blog-
             </div>
           </div>
         </div>
-
-        <div class="modal-footer mt-5">
-          <KunButton variant="light" color="default" size="sm" @click="showSettings = false">关闭</KunButton>
         </div>
+
       </template>
     </KunModal>
   </div>
