@@ -29,10 +29,10 @@ function displayName(name: string): string {
 
 <template>
   <template v-for="key in getKeys()" :key="key">
-    <!-- Folder -->
+    <!-- Folder (KunButton light style) -->
     <li v-if="nodes[key].children && Object.keys(nodes[key].children).length > 0 && !nodes[key].path" class="folder-open">
-      <div
-        class="flex items-center gap-1.5 px-3 py-1 text-sm rounded-md cursor-pointer transition-colors text-default-500 hover:bg-default-100 hover:text-foreground"
+      <button
+        class="relative inline-flex cursor-pointer items-center gap-1.5 overflow-hidden font-medium transition-all w-full text-left px-3 py-1.5 text-sm rounded-md text-default-500 hover:bg-default-100 hover:text-foreground"
         @click="toggleFolder"
       >
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 transition-transform">
@@ -41,9 +41,9 @@ function displayName(name: string): string {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0" style="color: hsl(37, 74%, 44%);">
           <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
         </svg>
-        <span class="truncate">{{ displayName(nodes[key].name) }}</span>
-      </div>
-      <ul class="hidden pl-0 list-none folder-open:block">
+        <span class="truncate text-xs">{{ displayName(nodes[key].name) }}</span>
+      </button>
+      <ul class="hidden pl-3 list-none folder-open:block">
         <TreeNode
           :nodes="nodes[key].children"
           :sort-mode="sortMode"
@@ -52,12 +52,12 @@ function displayName(name: string): string {
         />
       </ul>
     </li>
-    <!-- File -->
+    <!-- File (KunButton light style) -->
     <li v-else>
-      <div
-        class="flex items-center gap-2 px-3 py-1 text-sm rounded-md cursor-pointer transition-colors truncate"
+      <button
+        class="relative inline-flex cursor-pointer items-center gap-2 overflow-hidden font-medium transition-all w-full text-left px-3 py-1.5 text-sm rounded-md truncate"
         :class="activePath === nodes[key].path
-          ? '!text-primary bg-primary/10 font-medium'
+          ? '!text-primary !bg-primary/10'
           : 'text-default-500 hover:bg-default-100 hover:text-foreground'"
         @click="emit('select', nodes[key].path!)"
       >
@@ -65,8 +65,8 @@ function displayName(name: string): string {
           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
           <polyline points="14 2 14 8 20 8" />
         </svg>
-        <span class="truncate">{{ displayName(nodes[key].name) }}</span>
-      </div>
+        <span class="truncate text-xs">{{ displayName(nodes[key].name) }}</span>
+      </button>
     </li>
   </template>
 </template>
