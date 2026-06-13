@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import {
   savePost,
@@ -10,6 +11,7 @@ import {
 } from '@/composables/useGithubApi'
 import type { ContentItem } from '@/types'
 
+const router = useRouter()
 const props = defineProps<{ editPath?: string | null }>()
 
 const titleInput = ref('')
@@ -197,7 +199,7 @@ async function save() {
     if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md'
     await savePost(fullPath, body, token)
     alert('保存成功!')
-    window.location.href = `/?f=${encodeURIComponent(fullPath)}`
+    router.push({ path: '/', query: { f: fullPath } })
   } catch (e: any) {
     alert('保存失败: ' + e.message)
   } finally {
