@@ -8,14 +8,43 @@ const BRANCH = 'main'
 const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}`
 const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`
 
-/** Fetch full recursive file tree from GitHub Git Tree API */
+/** Fetch full recursive file tree from GitHub Git Tree API
+ *  Cached in localStorage for 5 min to avoid 403 rate limiting. */
+const TREE_CACHE_KEY = 'github-tree-cache'
+const TREE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export async function fetchFileTree(): Promise<GitTreeItem[]> {
+  // Check cache
+  const cached = localStorage.getItem(TREE_CACHE_KEY)
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < TREE_CACHE_TTL) return data
+    } catch { /* ignore corrupt cache */ }
+  }
+
   const res = await fetch(
     `${API_BASE}/git/trees/${BRANCH}?recursive=1&t=${Date.now()}`
   )
-  if (!res.ok) return []
-  const data = await res.json()
-  return data.tree.filter((item: any) => item.path.startsWith('Article/'))
+  if (!res.ok) {
+    // On failure, try stale cache
+    if (cached) {
+      try {
+        const { data } = JSON.parse(cached)
+        return data
+      } catch { /* ignore */ }
+    }
+    return []
+  }
+  const json = await res.json()
+  const items: GitTreeItem[] = json.tree.filter((item: any) =>
+    item.path.startsWith('Article/')
+  )
+  // Write cache
+  try {
+    localStorage.setItem(TREE_CACHE_KEY, JSON.stringify({ data: items, timestamp: Date.now() }))
+  } catch { /* quota exceeded, ignore */ }
+  return items
 }
 
 /** Fetch markdown file content from raw URL */
