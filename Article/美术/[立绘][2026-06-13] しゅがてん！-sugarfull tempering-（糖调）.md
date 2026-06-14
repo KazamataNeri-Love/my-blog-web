@@ -20,7 +20,7 @@ tags: Galgame, 解包, 立绘, 百度网盘, しゅがてん, 糖调
 
 *解压方法： 将后缀完整改为rar，如有密码，默认为YUKI或yuki*
 
-![eve01b.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/ArticleResource/%5B%E7%AB%8B%E7%BB%98%5D%5B2026-06-13%5D%20%E3%81%97%E3%82%85%E3%81%8C%E3%81%A6%E3%82%93%EF%BC%81-sugarfull%20tempering-%EF%BC%88%E7%B3%96%E8%B0%83%EF%BC%89/1781455400823-eve01b.png)
+![Sugar.png](https://raw.githubusercontent.com/KazamataNeri-love/my-blog-web/main/ArticleResource/%E7%BE%8E%E6%9C%AF/2026-06-14-Sugar.png)
 
 # 碎碎念
 事情是这样的。楼主在游玩《糖调》被甜晕过去后彻夜难眠，遂起身搜寻CG资源和角色立绘资源。然而在诸多资源站辗转后发现：资源要么失效了要么得先付点小米，真是叫人沮丧————然后楼主就打开了GALBro。
