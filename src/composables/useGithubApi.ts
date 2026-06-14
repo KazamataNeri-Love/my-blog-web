@@ -95,10 +95,16 @@ export async function savePost(
   if (!res.ok) throw new Error(await res.text())
 }
 
-/** Upload image via GitHub Contents API */
+/** Upload image via GitHub Contents API
+ *
+ * Naming scheme: ArticleResource/{channel}/{date}-{sanitized-name}.png
+ *   - channel: passed from editor (e.g. '音乐', '美术')
+ *   - date:    today's date, e.g. '2026-06-15'
+ *   - name:    original filename stripped of extension and special chars
+ */
 export async function uploadImage(
   file: File,
-  folderName: string,
+  channel: string,
   token: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -106,11 +112,17 @@ export async function uploadImage(
     reader.readAsDataURL(file)
     reader.onload = async () => {
       const contentBase64 = (reader.result as string).split(',')[1]
-      const filename = `${Date.now()}-${file.name}`
-      const path = `ArticleResource/${encodeURIComponent(folderName)}/${filename}`
+      const safeName = file.name
+        .replace(/\.[^.]+$/, '')          // strip extension
+        .replace(/[^\w\-]/g, '')          // keep only letters/digits/underscore/hyphen
+        .slice(0, 60)                       // length cap
+      const today = new Date().toISOString().slice(0, 10)
+      const filename = `${today}-${safeName}.png`
+      const channelSafe = encodeURIComponent(channel)
+      const path = `ArticleResource/${channelSafe}/${filename}`
 
       const body = {
-        message: `Upload image to ${folderName}`,
+        message: `Upload image to ${channel}`,
         content: contentBase64,
         branch: BRANCH,
       }
@@ -125,7 +137,7 @@ export async function uploadImage(
           body: JSON.stringify(body),
         })
         if (!res.ok) throw new Error(await res.text())
-        const rawUrl = `${RAW_BASE}/ArticleResource/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`
+        const rawUrl = `${RAW_BASE}/ArticleResource/${channelSafe}/${encodeURIComponent(filename)}`
         resolve(rawUrl)
       } catch (e) {
         reject(e)

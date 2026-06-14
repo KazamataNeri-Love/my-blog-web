@@ -132,9 +132,9 @@ async function confirmUpload() {
   if (!selectedImgFile.value) return
   localStorage.setItem('github_token', uploadToken.value)
 
-  const folderName = titleInput.value.split('/').pop() || 'Untitled'
+  const channel = currentChannel.value || titleInput.value.split('/').pop() || 'Unsort'
   try {
-    const url = await uploadImage(selectedImgFile.value, folderName, uploadToken.value)
+    const url = await uploadImage(selectedImgFile.value, channel, uploadToken.value)
     let widthSpec = imgWidth.value.trim()
     if (widthSpec && /^\d+$/.test(widthSpec)) widthSpec += '%'
     const titleAttr = widthSpec ? ` "width=${widthSpec}"` : ''
