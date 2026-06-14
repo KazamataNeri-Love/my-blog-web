@@ -3,9 +3,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchFileTree } from '@/composables/useGithubApi'
 import type { GitTreeItem } from '@/types'
+import { useToc } from '@/composables/useToc'
 
 const route = useRoute()
 const router = useRouter()
+const { tocItems } = useToc()
 
 const allFiles = ref<GitTreeItem[]>([])
 const loading = ref(true)
@@ -38,6 +40,18 @@ const lastUpdated = computed(() => {
   const m = latest.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
   return m ? `${m[1]}-${m[2]}-${m[3]}` : '-'
 })
+
+function scrollTo(id: string) {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // Brief highlight flash
+    const origBg = el.style.background
+    el.style.transition = 'background 0.3s'
+    el.style.background = 'hsla(var(--primary-500), 0.15)'
+    setTimeout(() => { el.style.background = origBg }, 1500)
+  }
+}
 </script>
 
 <template>
@@ -88,7 +102,18 @@ const lastUpdated = computed(() => {
         <!-- 左对齐文章目录 -->
         <div class="w-full">
           <p class="text-default-400 text-xs font-semibold tracking-wide uppercase mb-2">文章目录</p>
-          <p class="text-default-400 text-xs">加载中…</p>
+          <!-- TOC list -->
+          <div v-if="tocItems.length > 0" class="space-y-1">
+            <button
+              v-for="item in tocItems"
+              :key="item.id"
+              class="block w-full text-left text-xs rounded-kun-sm px-2 py-1 transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary"
+              :class="item.level === 1 ? 'pl-2 font-medium' : item.level === 2 ? 'pl-4' : 'pl-6'"
+              :style="{ borderLeft: '2px solid transparent' }"
+              @click="scrollTo(item.id)"
+            >{{ item.text }}</button>
+          </div>
+          <p v-else class="text-default-400 text-xs">加载中…</p>
         </div>
       </KunCard>
     </div>

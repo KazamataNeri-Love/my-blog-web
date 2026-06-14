@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { fetchPost, downloadFile } from '@/composables/useGithubApi'
+import { useToc } from '@/composables/useToc'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,11 +11,28 @@ const router = useRouter()
 const articleHtml = ref('')
 const articleTitle = ref('')
 const articlePath = ref('')
+const articleTags = ref<string[]>([])
+const articleDate = ref('')
 const loading = ref(false)
 const error = ref('')
+const contentRef = ref<HTMLElement | null>(null)
 
-// Custom marked renderer for code blocks
+const { updateToc, clearToc } = useToc()
+
+// Custom marked renderer
 const renderer = new marked.Renderer()
+
+// Heading renderer with IDs for TOC
+renderer.heading = ({ text, depth, tokens }) => {
+  const rawText = tokens.map(t => 'text' in t ? t.text : '').join('')
+  const id = rawText
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fff]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return `<h${depth} id="${id}">${text}</h${depth}>`
+}
+
+// Code block renderer
 renderer.code = ({ text, lang }) => {
   const langDisplay = lang || 'text'
   const encoded = encodeURIComponent(text)
@@ -42,26 +60,54 @@ async function loadArticle(path: string) {
   loading.value = true
   error.value = ''
   articlePath.value = path
+  articleTags.value = []
+  articleDate.value = ''
+  clearToc()
 
   try {
     const text = await fetchPost(path)
-    // Parse tags from HTML comment front-matter and strip them from display
-    const cleanText = text.replace(/^<!--\s*tags:\s*[\s\S]*?-->\n*/m, '').trim()
+
+    // Extract date from filename
+    const dateMatch = path.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
+    articleDate.value = dateMatch ? `${dateMatch[1]}/${dateMatch[2]}/${dateMatch[3]}` : ''
+
+    // Parse tags from front-matter
+    let cleanText = text
+    const tagMatch = text.match(/^<!--\s*tags:\s*([\s\S]*?)-->/m)
+    if (tagMatch) {
+      articleTags.value = tagMatch[1].split(',').map(t => t.trim()).filter(Boolean)
+      cleanText = text.replace(tagMatch[0], '').trim()
+    }
+
     const lines = cleanText.split('\n')
     const firstLine = lines[0].trim()
 
+    let html: string
     if (firstLine.startsWith('# ')) {
       articleTitle.value = firstLine.replace(/^#\s+/, '').trim()
-      articleHtml.value = marked.parse(lines.slice(1).join('\n'), { renderer }) as string
+      html = marked.parse(lines.slice(1).join('\n'), { renderer }) as string
     } else {
       const filename = path.split('/').pop() || ''
       articleTitle.value = filename.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
-      articleHtml.value = marked.parse(cleanText, { renderer }) as string
+      html = marked.parse(cleanText, { renderer }) as string
     }
+
+    articleHtml.value = html
+
+    // Extract TOC after render
+    await nextTick()
+    updateToc(html)
   } catch (e: any) {
     error.value = e.message
   } finally {
     loading.value = false
+  }
+}
+
+function scrollToHeading(id: string) {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 }
 
@@ -76,6 +122,9 @@ function goBack() {
   delete query.f
   router.push({ path: '/', query })
 }
+
+// Expose scrollToHeading for RightSidebar
+defineExpose({ scrollToHeading })
 </script>
 
 <template>
@@ -106,7 +155,19 @@ function goBack() {
 
     <!-- 标题 -->
     <h1 class="text-xl sm:text-2xl font-bold text-foreground mb-2">{{ articleTitle }}</h1>
+
+    <!-- Tag 气泡行 -->
+    <div v-if="articleTags.length > 0" class="flex flex-wrap gap-1.5 mb-2">
+      <span
+        v-for="tag in articleTags"
+        :key="tag"
+        class="inline-flex items-center px-2.5 py-0.5 text-xs rounded-kun-sm bg-primary/10 text-primary border border-primary/20"
+      >{{ tag }}</span>
+    </div>
+
+    <!-- 投稿时间 + 路径 -->
     <p class="text-xs text-default-400 mb-5 pb-4 border-b border-default-200">
+      <template v-if="articleDate">投稿于 {{ articleDate }} · </template>
       {{ articlePath }}
     </p>
 
