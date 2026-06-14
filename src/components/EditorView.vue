@@ -18,6 +18,7 @@ const props = defineProps<{ editPath?: string | null }>()
 const titleInput = ref('')
 const contentArea = ref('')
 const tags = ref<string[]>([])
+const currentChannel = ref('')
 const isSplitMode = ref(false)
 const statusText = ref('准备就绪')
 const wordCount = ref(0)
@@ -42,7 +43,15 @@ onMounted(async () => {
     statusText.value = `正在编辑: ${props.editPath}`
     try {
       const text = await fetchPost(props.editPath)
-      titleInput.value = props.editPath.replace(/^Article\//, '').replace('.md', '')
+      // Extract channel from path: Article/{channel}/{rest}.md
+      const channelMatch = props.editPath.match(/^Article\/([^/]+)\//)
+      if (channelMatch) currentChannel.value = channelMatch[1]
+
+      const pathWithoutPrefix = props.editPath.replace(/^Article\//, '').replace('.md', '')
+      // Remove channel prefix from title input
+      titleInput.value = currentChannel.value
+        ? pathWithoutPrefix.replace(currentChannel.value + '/', '')
+        : pathWithoutPrefix
       // Parse tags from HTML comment front-matter
       const tagMatch = text.match(/^<!--\s*tags:\s*([\s\S]*?)-->/)
       if (tagMatch) {
@@ -203,6 +212,11 @@ async function save() {
   if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '保存中...' }
 
   try {
+    // Prepend channel if selected and not already in path
+    if (currentChannel.value && !inputVal.startsWith(currentChannel.value + '/')) {
+      inputVal = currentChannel.value + '/' + inputVal
+    }
+
     let fullPath = inputVal
     if (!fullPath.startsWith('Article/')) fullPath = 'Article/' + fullPath
     if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md'
@@ -238,6 +252,19 @@ async function save() {
           placeholder="例如: 笔记/Vue/第一课"
           @keydown="handleKeydown"
         />
+        <select
+          v-model="currentChannel"
+          class="px-3 py-2 text-sm border border-default-200 rounded-kun-md bg-background text-foreground outline-none transition-colors focus:border-primary cursor-pointer"
+        >
+          <option value="">选择分区</option>
+          <option value="杂谈">杂谈频道</option>
+          <option value="技术">技术频道</option>
+          <option value="美术">美术频道</option>
+          <option value="音乐">音乐频道</option>
+          <option value="媒体">媒体频道</option>
+          <option value="游戏">游戏频道</option>
+          <option value="公告">公告</option>
+        </select>
       </div>
       <KunButton variant="solid" color="success" size="sm" class="px-5" @click="save">
         <template #default>
