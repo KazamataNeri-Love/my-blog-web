@@ -21,15 +21,14 @@ function extractDate(path: string): string {
 // 显示名称
 function displayName(path: string): string {
   return path
-    .replace('_legacy/posts/', '')
+    .replace('Article/', '')
     .replace('.md', '')
-    .replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
     .replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
 }
 
 // 提取频道（一级目录名）
 function extractChannel(path: string): string {
-  const parts = path.replace('_legacy/posts/', '').split('/')
+  const parts = path.replace('Article/', '').split('/')
   return parts.length > 1 ? parts[0] : '未分类'
 }
 

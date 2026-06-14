@@ -42,7 +42,7 @@ onMounted(async () => {
     statusText.value = `正在编辑: ${props.editPath}`
     try {
       const text = await fetchPost(props.editPath)
-      titleInput.value = props.editPath.replace(/^posts\//, '').replace('.md', '')
+      titleInput.value = props.editPath.replace(/^Article\//, '').replace('.md', '')
       // Parse tags from HTML comment front-matter
       const tagMatch = text.match(/^<!--\s*tags:\s*([\s\S]*?)-->/)
       if (tagMatch) {
@@ -204,7 +204,7 @@ async function save() {
 
   try {
     let fullPath = inputVal
-    if (!fullPath.startsWith('_legacy/posts/')) fullPath = '_legacy/posts/' + fullPath
+    if (!fullPath.startsWith('Article/')) fullPath = 'Article/' + fullPath
     if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md'
     const tagBlock = tags.value.length > 0 ? `<!--\ntags: ${tags.value.join(', ')}\n-->\n\n` : ''
     await savePost(fullPath, tagBlock + body, token)

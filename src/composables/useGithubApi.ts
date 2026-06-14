@@ -15,7 +15,7 @@ export async function fetchFileTree(): Promise<GitTreeItem[]> {
   )
   if (!res.ok) return []
   const data = await res.json()
-  return data.tree.filter((item: any) => item.path.startsWith('_legacy/posts/'))
+  return data.tree.filter((item: any) => item.path.startsWith('Article/'))
 }
 
 /** Fetch markdown file content from raw URL */
@@ -107,7 +107,7 @@ export async function uploadImage(
     reader.onload = async () => {
       const contentBase64 = (reader.result as string).split(',')[1]
       const filename = `${Date.now()}-${file.name}`
-      const path = `_legacy/images/${encodeURIComponent(folderName)}/${filename}`
+      const path = `ArticleResource/${encodeURIComponent(folderName)}/${filename}`
 
       const body = {
         message: `Upload image to ${folderName}`,
@@ -125,7 +125,7 @@ export async function uploadImage(
           body: JSON.stringify(body),
         })
         if (!res.ok) throw new Error(await res.text())
-        const rawUrl = `${RAW_BASE}/_legacy/images/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`
+        const rawUrl = `${RAW_BASE}/ArticleResource/${encodeURIComponent(folderName)}/${encodeURIComponent(filename)}`
         resolve(rawUrl)
       } catch (e) {
         reject(e)
@@ -143,7 +143,7 @@ export function buildTree(files: GitTreeItem[]): TreeNode {
     if (file.type !== 'blob' && file.type !== 'tree') return
     if (!file.path.endsWith('.md') && file.type === 'blob') return
 
-    const parts = file.path.replace(/^_legacy\/posts\//, '').split('/')
+    const parts = file.path.replace(/^Article\//, '').split('/')
     let current = root
     parts.forEach((part, index) => {
       if (!current.children[part]) {
