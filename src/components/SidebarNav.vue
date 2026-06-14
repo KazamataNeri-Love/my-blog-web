@@ -22,11 +22,9 @@ const activeChannel = ref((route.query.channel as string) || '')
 
 function selectChannel(channelId: string) {
   activeChannel.value = channelId
-  const query = { ...route.query }
+  const query: Record<string, string> = {}
   if (channelId) {
     query.channel = channelId
-  } else {
-    delete query.channel
   }
   router.push({ path: '/', query })
   emit('closeSidebar')
