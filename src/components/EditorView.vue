@@ -10,12 +10,14 @@ import {
   downloadFile,
 } from '@/composables/useGithubApi'
 import type { ContentItem } from '@/types'
+import TagInput from './TagInput.vue'
 
 const router = useRouter()
 const props = defineProps<{ editPath?: string | null }>()
 
 const titleInput = ref('')
 const contentArea = ref('')
+const tags = ref<string[]>([])
 const isSplitMode = ref(false)
 const statusText = ref('准备就绪')
 const wordCount = ref(0)
@@ -41,7 +43,14 @@ onMounted(async () => {
     try {
       const text = await fetchPost(props.editPath)
       titleInput.value = props.editPath.replace(/^posts\//, '').replace('.md', '')
-      contentArea.value = text
+      // Parse tags from HTML comment front-matter
+      const tagMatch = text.match(/^<!--\s*tags:\s*([\s\S]*?)-->/)
+      if (tagMatch) {
+        tags.value = tagMatch[1].split(',').map(t => t.trim()).filter(Boolean)
+        contentArea.value = text.replace(tagMatch[0], '').trim()
+      } else {
+        contentArea.value = text
+      }
       wordCount.value = text.length
     } catch (e: any) {
       alert('读取失败: ' + e.message)
@@ -197,7 +206,8 @@ async function save() {
     let fullPath = inputVal
     if (!fullPath.startsWith('_legacy/posts/')) fullPath = '_legacy/posts/' + fullPath
     if (!fullPath.endsWith('.md')) fullPath = fullPath + '.md'
-    await savePost(fullPath, body, token)
+    const tagBlock = tags.value.length > 0 ? `<!--\ntags: ${tags.value.join(', ')}\n-->\n\n` : ''
+    await savePost(fullPath, tagBlock + body, token)
     alert('保存成功!')
     router.push({ path: '/', query: { f: fullPath } })
   } catch (e: any) {
@@ -239,6 +249,11 @@ async function save() {
           保存
         </template>
       </KunButton>
+    </div>
+
+    <!-- Tags -->
+    <div class="px-5 py-2 border-b border-default-200 bg-default-100/20">
+      <TagInput v-model:tags="tags" />
     </div>
 
     <!-- Editor Layout -->
