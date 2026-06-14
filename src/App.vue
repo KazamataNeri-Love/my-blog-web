@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import SidebarNav from '@/components/SidebarNav.vue'
 import RightSidebar from '@/components/RightSidebar.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 // Dark mode
 const dark = ref(localStorage.getItem('kun-dark') !== 'false')
@@ -13,8 +14,30 @@ watchEffect(() => {
   localStorage.setItem('kun-dark', String(dark.value))
 })
 
-// Search bar toggle
+// Search
 const showSearch = ref(false)
+const searchQuery = ref('')
+
+function toggleSearch() {
+  showSearch.value = !showSearch.value
+  if (!showSearch.value) {
+    searchQuery.value = ''
+    const query = { ...route.query }
+    delete query.q
+    router.push({ path: '/', query })
+  }
+}
+
+function onSearchInput() {
+  const query = { ...route.query }
+  if (searchQuery.value.trim()) {
+    query.q = searchQuery.value.trim()
+    delete query.f // go back to list view
+  } else {
+    delete query.q
+  }
+  router.push({ path: '/', query })
+}
 
 // Settings modal
 const showSettings = ref(false)
@@ -58,15 +81,25 @@ const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-b
       <!-- 右侧：搜索 + 设置 + 暗色 + 头像 -->
       <div class="flex items-center gap-1.5">
         <!-- 搜索 -->
-        <button
-          class="text-default-500 hover:text-foreground cursor-pointer p-1.5 rounded-kun-sm hover:bg-default-100 transition-colors"
-          @click="showSearch = !showSearch"
-          title="搜索"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-          </svg>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button
+            class="text-default-500 hover:text-foreground cursor-pointer p-1.5 rounded-kun-sm hover:bg-default-100 transition-colors"
+            @click="toggleSearch"
+            title="搜索"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </button>
+          <input
+            v-if="showSearch"
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索标题或标签…"
+            class="w-48 px-3 py-1.5 text-sm border border-default-200 rounded-kun-md bg-background text-foreground outline-none transition-colors focus:border-primary placeholder:text-default-400"
+            @input="onSearchInput"
+          />
+        </div>
 
         <!-- 设置（齿轮图标） -->
         <button
@@ -109,20 +142,6 @@ const CUTE_IMAGE_URL = 'https://raw.githubusercontent.com/KazamataNeri-Love/my-b
       </div>
     </header>
 
-    <!-- 搜索栏（点击搜索按钮后左侧延伸） -->
-    <div
-      v-if="showSearch"
-      class="border-default-200 bg-default-100/30 flex items-center gap-2 border-b px-5 py-2 transition-all"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-default-400 shrink-0">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
-        type="text"
-        placeholder="搜索文章标题或标签…"
-        class="bg-transparent w-full outline-none text-sm text-foreground placeholder:text-default-400"
-      />
-    </div>
 
     <!-- Layout: 三栏（填满视口） -->
     <div style="height: calc(100vh - 57px); display: grid; grid-template-columns: 1fr 4fr 1fr;">

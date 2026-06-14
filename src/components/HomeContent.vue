@@ -18,6 +18,9 @@ function extractDate(path: string): string {
   return m ? `${m[1]}/${m[2]}/${m[3]}` : ''
 }
 
+// 搜索关键词
+const searchQuery = computed(() => (route.query.q as string) || '')
+
 // 显示名称
 function displayName(path: string): string {
   return path
@@ -32,12 +35,25 @@ function extractChannel(path: string): string {
   return parts.length > 1 ? parts[0] : '未分类'
 }
 
-// 按频道筛选后的文章
+// 按频道 + 搜索关键词筛选
 const filteredFiles = computed(() => {
   let files = allFiles.value.filter(f => f.type === 'blob' && f.path.endsWith('.md'))
+
+  // Filter by channel
   if (activeChannel.value) {
     files = files.filter(f => extractChannel(f.path) === activeChannel.value)
   }
+
+  // Filter by search query (match title and path)
+  const q = searchQuery.value.toLowerCase()
+  if (q) {
+    files = files.filter(f => {
+      const name = displayName(f.path).toLowerCase()
+      const fullPath = f.path.toLowerCase()
+      return name.includes(q) || fullPath.includes(q)
+    })
+  }
+
   return files.sort((a, b) => b.path.localeCompare(a.path))
 })
 
@@ -84,7 +100,7 @@ function isCurrentArticle(path: string): boolean {
     <KunCard color="background" bordered class="min-h-[300px]">
       <div class="flex items-center justify-between mb-3 px-2">
         <p class="text-sm font-semibold text-foreground">
-          {{ activeChannel ? `${activeChannel}频道` : '全部文章' }}
+          {{ searchQuery ? `搜索: ${searchQuery}` : activeChannel ? `${activeChannel}频道` : '全部文章' }}
         </p>
         <span class="text-xs text-default-400">{{ filteredFiles.length }} 篇</span>
       </div>
