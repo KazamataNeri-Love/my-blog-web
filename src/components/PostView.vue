@@ -13,6 +13,23 @@ const articlePath = ref('')
 const loading = ref(false)
 const error = ref('')
 
+// Custom marked renderer for code blocks
+const renderer = new marked.Renderer()
+renderer.code = ({ text, lang }) => {
+  const langDisplay = lang || 'text'
+  const encoded = encodeURIComponent(text)
+  return `
+<div class="code-block rounded-kun-md border border-default-200 overflow-hidden my-4">
+  <div class="flex items-center justify-between px-4 py-1.5 bg-default-100/50 text-xs text-default-500 border-b border-default-200">
+    <span class="font-mono font-medium">${langDisplay}</span>
+    <button class="copy-btn inline-flex items-center gap-1 px-2 py-0.5 rounded-kun-sm hover:bg-default-200 transition-colors cursor-pointer" onclick="navigator.clipboard.writeText(decodeURIComponent('${encoded}')).then(() => { this.textContent='已复制'; setTimeout(()=>{this.innerHTML='📋 复制'},1500) })">
+      📋 复制
+    </button>
+  </div>
+  <pre class="!border-0 !rounded-none !my-0"><code class="language-${langDisplay}">${text}</code></pre>
+</div>`
+}
+
 onMounted(() => {
   if (route.query.f) loadArticle(route.query.f as string)
 })
@@ -28,16 +45,18 @@ async function loadArticle(path: string) {
 
   try {
     const text = await fetchPost(path)
-    const lines = text.split('\n')
+    // Parse tags from HTML comment front-matter and strip them from display
+    const cleanText = text.replace(/^<!--\s*tags:\s*[\s\S]*?-->\n*/m, '').trim()
+    const lines = cleanText.split('\n')
     const firstLine = lines[0].trim()
 
     if (firstLine.startsWith('# ')) {
       articleTitle.value = firstLine.replace(/^#\s+/, '').trim()
-      articleHtml.value = marked.parse(lines.slice(1).join('\n')) as string
+      articleHtml.value = marked.parse(lines.slice(1).join('\n'), { renderer }) as string
     } else {
       const filename = path.split('/').pop() || ''
       articleTitle.value = filename.replace('.md', '').replace(/^\d{4}-\d{1,2}-\d{1,2}-/, '')
-      articleHtml.value = marked.parse(text) as string
+      articleHtml.value = marked.parse(cleanText, { renderer }) as string
     }
   } catch (e: any) {
     error.value = e.message

@@ -135,6 +135,20 @@ html:not(.kun-dark-mode) .app-bg {
   background: hsla(var(--background), 0.7) !important;
 }
 
+/* Code block: override pre styles inside the enhanced block */
+.code-block pre {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: hsl(var(--content2)) !important;
+}
+.code-block pre code {
+  background: transparent !important;
+  padding: 16px !important;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 /* ============================================================
  * MARKDOWN BODY — 使用 KunUI 变量，自动适配亮/暗色模式
  * ============================================================ */
